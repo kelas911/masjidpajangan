@@ -81,6 +81,53 @@ function hashPass_(pass, salt) {
   return h;
 }
 
+// Cegah formula injection di Google Sheets (nilai berawalan = + - @ dianggap rumus) & batasi panjang
+function bersih_(v, max) {
+  let t = String(v === undefined || v === null ? '' : v).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '').trim();
+  if (max) t = t.slice(0, max);
+  if (/^[=+\-@]/.test(t)) t = "'" + t;
+  return t;
+}
+
+// Hanya tautan http(s) yang diterima untuk kolom URL (cegah javascript:, data:, dsb.)
+function urlAman_(u) {
+  const t = String(u || '').trim();
+  return /^https?:\/\/[^\s]+$/i.test(t) ? t.slice(0, 500) : '';
+}
+
+// Validasi tanggal masukan admin -> objek Date atau error
+function tanggalValid_(v) {
+  const d = new Date(v);
+  if (isNaN(d.getTime())) throw new Error('Format tanggal tidak valid.');
+  return d;
+}
+
+// Apakah akun (dari sheet Pengguna) masih wajib mengganti sandi awal?
+function wajibGantiPass_(username) {
+  const u = readAllRows_(CONFIG.SHEETS.pengguna)
+    .find(x => String(x.username).trim().toLowerCase() === String(username).trim().toLowerCase());
+  return !!u && String(u.wajib_ganti_pass) === '1';
+}
+
+// Cek tanda awal file: JPEG (FF D8 FF), PNG (89 50 4E 47), WebP (RIFF....WEBP)
+function bytesGambarValid_(b) {
+  const u = function (i) { return (b[i] === undefined ? -1 : (b[i] & 255)); };
+  const jpeg = u(0) === 0xFF && u(1) === 0xD8 && u(2) === 0xFF;
+  const png = u(0) === 0x89 && u(1) === 0x50 && u(2) === 0x4E && u(3) === 0x47;
+  const webp = u(0) === 0x52 && u(1) === 0x49 && u(2) === 0x46 && u(3) === 0x46 && u(8) === 0x57 && u(9) === 0x45 && u(10) === 0x42 && u(11) === 0x50;
+  return jpeg || png || webp;
+}
+
+// Pembatas laju sederhana berbasis CacheService. Mengembalikan true jika masih diizinkan.
+function izinkanLaju_(kunci, maks, detik) {
+  const c = CacheService.getScriptCache();
+  const k = 'rl_' + kunci;
+  const n = Number(c.get(k) || 0);
+  if (n >= maks) return false;
+  c.put(k, String(n + 1), detik);
+  return true;
+}
+
 function samaAman_(a, b) {
   a = String(a || '');
   b = String(b || '');
@@ -266,6 +313,11 @@ function doPost(e) {
         return buildResponse({ success: false, code: 'UNAUTHORIZED', message: 'Sesi login tidak sah atau sudah kedaluwarsa. Silakan login kembali.' });
       }
 
+      // Selama sandi awal belum diganti, hanya aksi ganti sandi yang boleh jalan
+      if (action !== 'gantiPassword' && wajibGantiPass_(auth.username)) {
+        return buildResponse({ success: false, code: 'WAJIB_GANTI_PASS', message: 'Anda harus mengganti kata sandi awal terlebih dahulu.' });
+      }
+
       if (action === 'verifyDonasi') {
         res = verifyDonasiAdmin(payload.data, auth);
       } else if (action === 'saveKas') {
@@ -365,9 +417,10 @@ function getPublicDataBundle() {
   let totalPengeluaran = 0;
   const kasSorted = kasRows.map(r => {
     const nom = Number(r.nominal) || 0;
-    if (String(r.jenis).toLowerCase().trim() === 'pemasukan') {
+    const jn = String(r.jenis).toLowerCase().trim();
+    if (jn === 'pemasukan') {
       totalPemasukan += nom;
-    } else {
+    } else if (jn === 'pengeluaran') {
       totalPengeluaran += nom;
     }
     return {
@@ -499,21 +552,43 @@ function submitDonasiPublic(data) {
   if (!nominal || nominal < 1000) {
     throw new Error('Nominal donasi minimal Rp 1.000.');
   }
+  if (nominal > 1000000000) {
+    throw new Error('Nominal donasi tidak valid.');
+  }
+
+  // Batas laju: maks 30 kiriman/jam secara global dan 3 kiriman/jam per nomor WA
+  if (!izinkanLaju_('don_global', 30, 3600)) {
+    throw new Error('Server sedang menerima banyak kiriman. Silakan coba lagi beberapa saat lagi.');
+  }
+  const waKey = String(data.no_wa || '').replace(/\D/g, '');
+  if (waKey && !izinkanLaju_('don_wa_' + waKey, 3, 3600)) {
+    throw new Error('Terlalu banyak konfirmasi dari nomor ini. Silakan coba lagi nanti.');
+  }
 
   // Upload bukti transfer jika dikirim dalam bentuk base64
   let buktiUrl = data.bukti_url || '';
+  // bukti_url dari publik tidak dipercaya: hanya tautan http(s)
+  if (buktiUrl && !/^https?:\/\//i.test(buktiUrl)) buktiUrl = '';
+  let buktiGagal = false;
   if (data.bukti_base64 && CONFIG.UPLOADS_FOLDER) {
     try {
-      const folder = DriveApp.getFolderById(CONFIG.UPLOADS_FOLDER);
-      const parts = data.bukti_base64.split(';base64,');
+      const raw = String(data.bukti_base64);
+      if (raw.length > 3 * 1024 * 1024) throw new Error('Ukuran bukti transfer terlalu besar (maks ~2 MB).');
+      const parts = raw.split(';base64,');
       const contentType = parts.length > 1 ? parts[0].replace('data:', '') : 'image/jpeg';
+      if (!/^image\/(jpeg|png|webp)$/.test(contentType)) throw new Error('Bukti transfer harus berupa gambar JPG/PNG/WebP.');
       const base64Data = parts.length > 1 ? parts[1] : parts[0];
-      const blob = Utilities.newBlob(Utilities.base64Decode(base64Data), contentType, 'bukti_' + Date.now() + '.jpg');
+      const folder = DriveApp.getFolderById(CONFIG.UPLOADS_FOLDER);
+      const ext = contentType === 'image/png' ? '.png' : (contentType === 'image/webp' ? '.webp' : '.jpg');
+      const bytesBukti = Utilities.base64Decode(base64Data);
+      if (!bytesGambarValid_(bytesBukti)) throw new Error('Isi file bukan gambar yang valid (JPG/PNG/WebP).');
+      const blob = Utilities.newBlob(bytesBukti, contentType, 'bukti_' + Date.now() + ext);
       const file = folder.createFile(blob);
       file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
       buktiUrl = file.getUrl();
     } catch (e) {
       Logger.log('Gagal upload bukti transfer: ' + e.message);
+      buktiGagal = true;
     }
   }
 
@@ -525,13 +600,13 @@ function submitDonasiPublic(data) {
   sh.appendRow([
     idDonasi,
     tanggal,
-    data.program || 'Infaq Umum',
-    data.nama_donatur || 'Hamba Allah',
-    data.no_wa || '',
+    bersih_(data.program, 100) || 'Infaq Umum',
+    bersih_(data.nama_donatur, 80) || 'Hamba Allah',
+    bersih_(data.no_wa, 20),
     nominal,
-    data.metode_transfer || 'Transfer Bank BSI',
+    bersih_(data.metode_transfer, 60) || 'Transfer Bank BSI',
     buktiUrl,
-    data.doa_pesan || '',
+    bersih_(data.doa_pesan, 300),
     'Menunggu',
     '',
     '',
@@ -541,7 +616,9 @@ function submitDonasiPublic(data) {
   bump('global');
   return {
     success: true,
-    message: 'Alhamdulillah, konfirmasi donasi Anda telah kami terima. Takmir akan segera memverifikasinya. Jazakumullah khairan katsiran.',
+    message: 'Alhamdulillah, konfirmasi donasi Anda telah kami terima. Takmir akan segera memverifikasinya.'
+      + (buktiGagal ? ' Catatan: foto bukti transfer tidak dapat diproses (harus JPG/PNG/WebP, maks ~2 MB). Mohon kirim bukti melalui WhatsApp Takmir.' : '')
+      + ' Jazakumullah khairan katsiran.',
     idDonasi: idDonasi
   };
 }
@@ -591,19 +668,20 @@ function handleLoginAdmin(data) {
 
   if (!matchedUser || !passValid) {
     // Catat percobaan gagal
-    const failKey = 'FAIL_' + usernameInput;
-    const fails = Number(prop_(failKey) || 0) + 1;
-    setProp_(failKey, fails);
+    const failKey = 'fail_' + usernameInput;
+    const cache = CacheService.getScriptCache();
+    const fails = Number(cache.get(failKey) || 0) + 1;
+    cache.put(failKey, String(fails), 900); // jendela hitung 15 menit
     if (fails >= 5) {
       setProp_(lockKey, Date.now() + 15 * 60000); // Kunci 15 menit
-      delProp_(failKey);
+      cache.remove(failKey);
       return { success: false, message: 'Terlalu banyak percobaan sandi salah. Akun dikunci selama 15 menit demi keamanan.' };
     }
     return { success: false, message: 'Username atau kata sandi tidak sesuai. (' + fails + '/5)' };
   }
 
   // Login Berhasil — Reset counter kegagalan
-  delProp_('FAIL_' + usernameInput);
+  CacheService.getScriptCache().remove('fail_' + usernameInput);
   delProp_(lockKey);
 
   const token = buatSesi_(matchedUser.username, matchedUser.role, matchedUser.nama);
@@ -633,9 +711,16 @@ function gantiPasswordAdmin(data, auth) {
   const sIdx = headers.indexOf('salt');
   const wIdx = headers.indexOf('wajib_ganti_pass');
 
+  if (!data.passwordLama) throw new Error('Kata sandi lama wajib diisi.');
+  if (data.passwordLama === data.passwordBaru) throw new Error('Kata sandi baru harus berbeda dari yang lama.');
+  if (data.passwordBaru.length > 100) throw new Error('Kata sandi terlalu panjang.');
+
   let found = false;
   for (let r = 1; r < rows.length; r++) {
     if (String(rows[r][uIdx]).toLowerCase().trim() === auth.username.toLowerCase().trim()) {
+      if (!samaAman_(hashPass_(String(data.passwordLama), String(rows[r][sIdx])), String(rows[r][hIdx]))) {
+        throw new Error('Kata sandi lama tidak sesuai.');
+      }
       const newSalt = Utilities.getUuid();
       const newHash = hashPass_(data.passwordBaru, newSalt);
       sh.getRange(r + 1, hIdx + 1).setValue(newHash);
@@ -717,6 +802,12 @@ function saveKasAdmin(data, auth) {
   if (!data || !data.jenis || !data.nominal) {
     throw new Error('Jenis transaksi dan nominal wajib diisi.');
   }
+  if (data.jenis !== 'Pemasukan' && data.jenis !== 'Pengeluaran') {
+    throw new Error('Jenis transaksi harus Pemasukan atau Pengeluaran.');
+  }
+  if (!(Number(data.nominal) > 0)) {
+    throw new Error('Nominal harus lebih dari 0.');
+  }
 
   const sh = getSheet_(CONFIG.SHEETS.kas);
   const rows = sh.getDataRange().getValues();
@@ -741,10 +832,10 @@ function saveKasAdmin(data, auth) {
     id,
     tanggal,
     data.jenis === 'Pemasukan' ? 'Pemasukan' : 'Pengeluaran',
-    data.kategori || 'Lain-lain',
-    data.keterangan || '',
+    bersih_(data.kategori, 60) || 'Lain-lain',
+    bersih_(data.keterangan, 300),
     Number(data.nominal) || 0,
-    data.metode || 'Kas Fisik',
+    bersih_(data.metode, 60) || 'Kas Fisik',
     auth.nama || 'Takmir',
     Utilities.formatDate(now, 'Asia/Jakarta', 'yyyy-MM-dd HH:mm:ss')
   ];
@@ -787,7 +878,7 @@ function saveKegiatanAdmin(data, auth) {
 
   const now = new Date();
   const id = data.id || ('ACT-' + Utilities.formatDate(now, 'Asia/Jakarta', 'yyMMdd') + '-' + acak_(4, '1234567890'));
-  const tanggal = formatDate_(new Date(data.tanggal));
+  const tanggal = formatDate_(tanggalValid_(data.tanggal));
 
   let existingRow = -1;
   if (data.id) {
@@ -801,16 +892,16 @@ function saveKegiatanAdmin(data, auth) {
 
   const rowValues = [
     id,
-    data.judul,
-    data.kategori || 'Kajian Rutin',
+    bersih_(data.judul, 150),
+    bersih_(data.kategori, 60) || 'Kajian Rutin',
     tanggal,
-    data.waktu_mulai || '19:30',
-    data.waktu_selesai || '21:00',
-    data.penceramah || '',
-    data.lokasi || 'Masjid Al Ikhlash',
-    data.keterangan || '',
-    data.poster_url || '',
-    data.status || 'Aktif',
+    bersih_(data.waktu_mulai, 5) || '19:30',
+    bersih_(data.waktu_selesai, 5) || '21:00',
+    bersih_(data.penceramah, 100),
+    bersih_(data.lokasi, 120) || 'Masjid Al Ikhlash',
+    bersih_(data.keterangan, 500),
+    urlAman_(data.poster_url),
+    data.status === 'Nonaktif' ? 'Nonaktif' : 'Aktif',
     Utilities.formatDate(now, 'Asia/Jakarta', 'yyyy-MM-dd HH:mm:ss')
   ];
 
@@ -865,14 +956,14 @@ function savePengurusAdmin(data, auth) {
 
   const rowValues = [
     id,
-    data.nama,
-    data.jabatan,
-    data.masa_bakti || '2024 - 2028',
-    data.profil_singkat || '',
-    data.foto_url || '',
-    data.no_wa || '',
+    bersih_(data.nama, 100),
+    bersih_(data.jabatan, 80),
+    bersih_(data.masa_bakti, 30) || '2024 - 2028',
+    bersih_(data.profil_singkat, 500),
+    urlAman_(data.foto_url),
+    bersih_(data.no_wa, 20),
     Number(data.urutan) || 10,
-    data.status || 'Aktif',
+    data.status === 'Nonaktif' ? 'Nonaktif' : 'Aktif',
     Utilities.formatDate(now, 'Asia/Jakarta', 'yyyy-MM-dd HH:mm:ss')
   ];
 
@@ -906,6 +997,7 @@ function saveGaleriAdmin(data, auth) {
   if (!data || !data.judul || !data.foto_url) {
     throw new Error('Judul dan URL foto galeri wajib diisi.');
   }
+  if (!urlAman_(data.foto_url)) throw new Error('URL foto harus diawali http:// atau https://');
 
   const sh = getSheet_(CONFIG.SHEETS.galeri);
   const rows = sh.getDataRange().getValues();
@@ -927,11 +1019,11 @@ function saveGaleriAdmin(data, auth) {
 
   const rowValues = [
     id,
-    data.judul,
-    data.keterangan || '',
-    data.foto_url,
+    bersih_(data.judul, 120),
+    bersih_(data.keterangan, 300),
+    urlAman_(data.foto_url),
     Number(data.urutan) || 1,
-    data.status || 'Aktif',
+    data.status === 'Nonaktif' ? 'Nonaktif' : 'Aktif',
     Utilities.formatDate(now, 'Asia/Jakarta', 'yyyy-MM-dd HH:mm:ss')
   ];
 
@@ -974,11 +1066,14 @@ function saveProfilAdmin(data, auth) {
     if (k) keyToRow[k] = r + 1;
   }
 
-  Object.keys(data).forEach(k => {
+  // Hanya kunci profil yang dikenal yang boleh diubah
+  const KUNCI_BOLEH = ['NAMA_MASJID', 'AFILIASI', 'ALAMAT', 'VISI_MISI', 'BANK_ACCOUNT', 'BANK_HOLDER', 'KONTAK_WA', 'EMAIL', 'MAPS_URL'];
+  Object.keys(data).filter(k => KUNCI_BOLEH.indexOf(k) > -1).forEach(k => {
+    const nilai = k === 'MAPS_URL' ? urlAman_(data[k]) : bersih_(data[k], 1000);
     if (keyToRow[k]) {
-      sh.getRange(keyToRow[k], valIdx + 1).setValue(String(data[k]));
+      sh.getRange(keyToRow[k], valIdx + 1).setValue(nilai);
     } else {
-      sh.appendRow([k, String(data[k]), 'Pengaturan Profil Takmir']);
+      sh.appendRow([k, nilai, 'Pengaturan Profil Takmir']);
     }
   });
 
@@ -990,30 +1085,35 @@ function uploadJadwalPdfAdmin(data, auth) {
   if (!data || !data.bulan_tahun) {
     throw new Error('Bulan & tahun jadwal wajib diisi.');
   }
+  const bulanTahun = bersih_(data.bulan_tahun, 40);
+  if (!bulanTahun) throw new Error('Bulan & tahun jadwal wajib diisi.');
 
-  let fileUrl = data.file_url || '';
-  let downloadUrl = data.download_url || fileUrl;
+  let fileUrl = urlAman_(data.file_url);
+  let downloadUrl = urlAman_(data.download_url) || fileUrl;
   let fileId = '';
 
-  // Handle PDF base64 upload if provided
-  if (data.pdf_base64 && CONFIG.PDF_FOLDER) {
-    try {
-      const folder = DriveApp.getFolderById(CONFIG.PDF_FOLDER);
-      const parts = data.pdf_base64.split(';base64,');
-      const base64Data = parts.length > 1 ? parts[1] : parts[0];
-      const blob = Utilities.newBlob(
-        Utilities.base64Decode(base64Data),
-        'application/pdf',
-        'Jadwal_Sholat_' + data.bulan_tahun.replace(/\s+/g, '_') + '.pdf'
-      );
-      const file = folder.createFile(blob);
-      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-      fileId = file.getId();
-      fileUrl = file.getUrl();
-      downloadUrl = 'https://drive.google.com/uc?export=download&id=' + fileId;
-    } catch (e) {
-      Logger.log('Gagal upload PDF ke Drive: ' + e.message);
-    }
+  if (data.pdf_base64) {
+    // Semua kegagalan di blok ini dilempar ke admin, dan jadwal lama TIDAK diarsipkan
+    if (!CONFIG.PDF_FOLDER) throw new Error('Folder penyimpanan PDF belum dikonfigurasi di server.');
+    const raw = String(data.pdf_base64);
+    if (raw.length > 7 * 1024 * 1024) throw new Error('Ukuran PDF terlalu besar (maks ~5 MB).');
+    const parts = raw.split(';base64,');
+    const bytes = Utilities.base64Decode(parts.length > 1 ? parts[1] : parts[0]);
+    // Pastikan isinya benar-benar PDF (tanda "%PDF-" di awal file), bukan sekadar berekstensi .pdf
+    const kepala = String.fromCharCode.apply(null, bytes.slice(0, 5).map(function (x) { return x & 255; }));
+    if (kepala !== '%PDF-') throw new Error('File yang diunggah bukan dokumen PDF yang valid.');
+
+    const folder = DriveApp.getFolderById(CONFIG.PDF_FOLDER);
+    const blob = Utilities.newBlob(bytes, 'application/pdf', 'Jadwal_Sholat_' + bulanTahun.replace(/[^A-Za-z0-9]+/g, '_') + '.pdf');
+    const file = folder.createFile(blob);
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    fileId = file.getId();
+    fileUrl = file.getUrl();
+    downloadUrl = 'https://drive.google.com/uc?export=download&id=' + fileId;
+  }
+
+  if (!fileUrl && !downloadUrl) {
+    throw new Error('Pilih file PDF atau isi tautan jadwal terlebih dahulu.');
   }
 
   const sh = getSheet_(CONFIG.SHEETS.jadwalSholatPdf);
@@ -1031,7 +1131,7 @@ function uploadJadwalPdfAdmin(data, auth) {
   const newId = 'PDF-' + Utilities.formatDate(new Date(), 'Asia/Jakarta', 'yyMM') + '-' + acak_(4, '1234567890');
   sh.appendRow([
     newId,
-    data.bulan_tahun,
+    bulanTahun,
     fileId,
     fileUrl,
     downloadUrl,

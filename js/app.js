@@ -246,6 +246,11 @@ async function apiCall(action, payload = null, method = 'GET') {
         });
       }
       const json = await res.json();
+      if (method === 'POST' && json && json.code === 'UNAUTHORIZED' && APP_STATE.adminToken) {
+        sesiBerakhir_();
+      } else if (method === 'POST' && json && json.code === 'WAJIB_GANTI_PASS') {
+        bukaModalWajibGanti();
+      }
       return json;
     } catch (err) {
       console.error('API Call Error:', err);
@@ -279,6 +284,8 @@ document.addEventListener('DOMContentLoaded', () => {
   initPrayerTimes();
   initGallerySlider();
   updateAuthUI();
+  // Sesi lama yang masih memakai sandi awal: paksa ganti sandi
+  if (APP_STATE.adminToken && APP_STATE.adminUser && APP_STATE.adminUser.wajibGantiPass) bukaModalWajibGanti();
 
   // 3. SWR: Revalidate dari Live API di latar belakang
   revalidatePublicData();
@@ -365,7 +372,7 @@ function renderProfilUI() {
   if (heroName) heroName.textContent = p.NAMA_MASJID || 'Masjid Al Ikhlash';
 
   const heroAff = document.getElementById('heroMosqueAffiliation');
-  if (heroAff) heroAff.innerHTML = `<span class="material-symbols-outlined text-[14px]">location_on</span> ${p.AFILIASI || 'PRM Pajangan'}`;
+  if (heroAff) heroAff.innerHTML = `<span class="material-symbols-outlined text-[14px]">location_on</span> ${esc(p.AFILIASI || 'PRM Pajangan')}`;
 
   const profilTitle = document.getElementById('profilMosqueTitle');
   if (profilTitle) profilTitle.textContent = p.NAMA_MASJID || 'Masjid Al Ikhlash';
@@ -386,10 +393,24 @@ function renderProfilUI() {
   if (linkWA && p.KONTAK_WA) linkWA.href = `https://wa.me/${p.KONTAK_WA.replace(/\D/g, '')}`;
 
   const linkMaps = document.getElementById('linkMaps');
-  if (linkMaps && p.MAPS_URL) linkMaps.href = p.MAPS_URL;
+  if (linkMaps && p.MAPS_URL) linkMaps.href = safeUrl(p.MAPS_URL, '#');
 
   const linkEmail = document.getElementById('linkEmail');
-  if (linkEmail && p.EMAIL) linkEmail.href = `mailto:${p.EMAIL}`;
+  if (linkEmail && p.EMAIL) linkEmail.href = `mailto:${encodeURIComponent(p.EMAIL)}`.replace('%40','@');
+}
+
+// Anti-XSS: semua teks dari database/form publik WAJIB lewat esc() sebelum masuk innerHTML
+function esc(v) {
+  return String(v === undefined || v === null ? '' : v)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// Hanya izinkan http(s), data:image, dan path relatif untuk src/href dari data eksternal
+function safeUrl(u, fallback) {
+  const s = String(u || '').trim();
+  if (/^(https?:\/\/|\.\/|\/(?!\/)|data:image\/(png|jpe?g|gif|webp);base64,)/i.test(s)) return s;
+  return fallback || '';
 }
 
 function formatRupiah(num) {
@@ -449,23 +470,34 @@ function setupKasFilters() {
   }
 }
 
+// Satu sumber kebenaran filter kas: dipakai tampilan tabel DAN ekspor Excel/PDF
+function getFilteredKas() {
+  const allTx = (APP_STATE.data.keuangan && APP_STATE.data.keuangan.transaksi) || [];
+  const q = APP_STATE.kasFilter.query;
+  const t = APP_STATE.kasFilter.type;
+  const c = APP_STATE.kasFilter.category;
+  return allTx.filter(tx => {
+    const matchQuery = !q || (tx.keterangan || '').toLowerCase().includes(q) || (tx.kategori || '').toLowerCase().includes(q);
+    const matchType = t === 'all' || (tx.jenis || '').toLowerCase() === t.toLowerCase();
+    const matchCat = c === 'all' || (tx.kategori || '').toLowerCase() === c.toLowerCase();
+    return matchQuery && matchType && matchCat;
+  });
+}
+
+// Cegah formula injection saat CSV dibuka di Excel (=, +, -, @, tab, CR di awal sel)
+function csvCell(v) {
+  let t = String(v === undefined || v === null ? '' : v);
+  if (/^[=+\-@\t\r]/.test(t)) t = "'" + t;
+  return '"' + t.replace(/"/g, '""') + '"';
+}
+
 function applyKasFilter() {
   const listContainer = document.getElementById('kasTransactionsList');
   const emptyState = document.getElementById('kasEmptyState');
   const countLabel = document.getElementById('kasResultCount');
   if (!listContainer) return;
 
-  const allTx = (APP_STATE.data.keuangan && APP_STATE.data.keuangan.transaksi) || [];
-  const q = APP_STATE.kasFilter.query;
-  const t = APP_STATE.kasFilter.type;
-  const c = APP_STATE.kasFilter.category;
-
-  const filtered = allTx.filter(tx => {
-    const matchQuery = !q || (tx.keterangan || '').toLowerCase().includes(q) || (tx.kategori || '').toLowerCase().includes(q);
-    const matchType = t === 'all' || (tx.jenis || '').toLowerCase() === t.toLowerCase();
-    const matchCat = c === 'all' || (tx.kategori || '').toLowerCase() === c.toLowerCase();
-    return matchQuery && matchType && matchCat;
-  });
+  const filtered = getFilteredKas();
 
   if (countLabel) countLabel.textContent = `Menampilkan ${filtered.length} mutasi`;
 
@@ -492,18 +524,18 @@ function applyKasFilter() {
           <div class="min-w-0 flex-1">
             <div class="flex items-center gap-1.5 mb-0.5">
               <span class="bg-surface-container-highest text-primary text-[10px] font-bold px-2 py-0.5 rounded-md">
-                ${tx.kategori || 'Kas'}
+                ${esc(tx.kategori || 'Kas')}
               </span>
-              <span class="text-text-muted text-[11px]">${tx.tanggal || ''}</span>
+              <span class="text-text-muted text-[11px]">${esc(tx.tanggal || '')}</span>
             </div>
-            <h4 class="text-xs font-bold text-text-primary truncate">${tx.keterangan || 'Transaksi Kas'}</h4>
-            <p class="text-[11px] text-text-muted mt-0.5">Metode: ${tx.metode || 'Kas'}</p>
+            <h4 class="text-xs font-bold text-text-primary truncate">${esc(tx.keterangan || 'Transaksi Kas')}</h4>
+            <p class="text-[11px] text-text-muted mt-0.5">Metode: ${esc(tx.metode || 'Kas')}</p>
           </div>
         </div>
         <div class="text-right flex-shrink-0">
           <span class="text-xs font-extrabold ${textNominalColor} block">${sign}${formatRupiah(tx.nominal)}</span>
           ${APP_STATE.adminToken ? `
-            <button onclick="hapusKasAdmin('${tx.id}')" class="text-[11px] text-error font-semibold hover:underline mt-1">Hapus</button>
+            <button onclick="hapusKasAdmin('${esc(tx.id)}')" class="text-[11px] text-error font-semibold hover:underline mt-1">Hapus</button>
           ` : ''}
         </div>
       </div>
@@ -531,7 +563,7 @@ function exportKasExcel() {
     return;
   }
 
-  const txs = (APP_STATE.data.keuangan && APP_STATE.data.keuangan.transaksi) || [];
+  const txs = getFilteredKas(); // ikut hasil filter yang sedang tampil (sesuai PRD)
   if (txs.length === 0) {
     showToast('Tidak ada data transaksi untuk diekspor.', 'info');
     return;
@@ -541,8 +573,7 @@ function exportKasExcel() {
   let csv = '\uFEFF';
   csv += 'ID Transaksi,Tanggal,Jenis,Kategori,Keterangan,Nominal (Rp),Metode\n';
   txs.forEach(t => {
-    const ketClean = `"${String(t.keterangan || '').replace(/"/g, '""')}"`;
-    csv += `${t.id},${t.tanggal},${t.jenis},${t.kategori},${ketClean},${t.nominal},${t.metode || 'Kas'}\n`;
+    csv += [t.id, t.tanggal, t.jenis, t.kategori, t.keterangan, t.nominal, t.metode || 'Kas'].map(csvCell).join(',') + '\n';
   });
 
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -634,20 +665,25 @@ function renderKegiatanUI(searchQuery = '') {
           <div class="flex flex-col min-w-0 flex-1">
             <div class="flex items-center gap-1.5 mb-1 flex-wrap">
               <span class="px-2 py-0.5 rounded-full bg-surface-container text-primary text-[10px] font-bold">
-                ${k.kategori || 'Kegiatan'}
+                ${esc(k.kategori || 'Kegiatan')}
               </span>
             </div>
             <h3 class="text-xs font-bold text-text-primary leading-snug line-clamp-2">
-              ${k.judul}
+              ${esc(k.judul)}
             </h3>
           </div>
         </div>
         <div class="bg-surface rounded-xl p-2.5 flex flex-col gap-1 text-[11px] text-text-muted">
-          ${k.penceramah ? `<div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px] text-primary">person</span><span class="font-medium text-text-primary">${k.penceramah}</span></div>` : ''}
-          <div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px] text-secondary">schedule</span><span>${k.waktu_mulai || '19:30'} - ${k.waktu_selesai || 'Selesai'} WIB</span></div>
-          <div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px] text-text-muted">location_on</span><span>${k.lokasi || 'Ruang Utama Masjid'}</span></div>
-          ${k.keterangan ? `<p class="mt-1 pt-1 border-t border-border-divider/50 text-text-muted leading-relaxed">${k.keterangan}</p>` : ''}
+          ${k.penceramah ? `<div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px] text-primary">person</span><span class="font-medium text-text-primary">${esc(k.penceramah)}</span></div>` : ''}
+          <div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px] text-secondary">schedule</span><span>${esc(k.waktu_mulai || '19:30')} - ${esc(k.waktu_selesai || 'Selesai')} WIB</span></div>
+          <div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px] text-text-muted">location_on</span><span>${esc(k.lokasi || 'Ruang Utama Masjid')}</span></div>
+          ${k.keterangan ? `<p class="mt-1 pt-1 border-t border-border-divider/50 text-text-muted leading-relaxed">${esc(k.keterangan)}</p>` : ''}
         </div>
+        ${APP_STATE.adminToken ? `
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="editKegiatan('${esc(k.id)}')" class="h-8 rounded-lg bg-surface-container text-primary text-[11px] font-bold" type="button">Ubah</button>
+          <button onclick="hapusKegiatan('${esc(k.id)}')" class="h-8 rounded-lg bg-error-container/40 text-error text-[11px] font-bold" type="button">Hapus</button>
+        </div>` : ''}
       </article>
     `;
   }).join('');
@@ -660,32 +696,37 @@ function renderPengurusUI() {
   const pengurusList = APP_STATE.data.pengurus || [];
   container.innerHTML = pengurusList.map(p => {
     return `
-      <div class="bg-surface-card rounded-2xl p-3 shadow-sm flex flex-col items-center text-center cursor-pointer transition-all hover:shadow-md active:scale-95 group" onclick="bukaModalPengurusDetail('${p.id}')">
+      <div class="bg-surface-card rounded-2xl p-3 shadow-sm flex flex-col items-center text-center cursor-pointer transition-all hover:shadow-md active:scale-95 group" onclick="bukaModalPengurusDetail('${esc(p.id)}')">
         <div class="relative w-16 h-16 mb-2">
           <div class="w-16 h-16 rounded-full p-1 bg-surface-container-high">
-            <img class="w-full h-full object-cover rounded-full bg-surface-dim" src="${p.foto_url || './assets/logo.png'}" alt="${p.nama}"/>
+            <img class="w-full h-full object-cover rounded-full bg-surface-dim" src="${esc(safeUrl(p.foto_url, './assets/logo.png'))}" alt="${esc(p.nama)}"/>
           </div>
           <span class="absolute bottom-0 right-0 w-5 h-5 rounded-full bg-primary text-on-primary flex items-center justify-center text-[10px] shadow-sm">
             <span class="material-symbols-outlined text-[12px]">shield_person</span>
           </span>
         </div>
-        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gold-light text-secondary mb-1 line-clamp-1">${p.jabatan || 'Pengurus'}</span>
-        <h3 class="text-xs font-bold text-text-primary leading-tight line-clamp-2 min-h-[32px] flex items-center justify-center">${p.nama}</h3>
-        <span class="text-[10px] text-text-muted mt-1">${p.masa_bakti || '2024 - 2028'}</span>
+        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gold-light text-secondary mb-1 line-clamp-1">${esc(p.jabatan || 'Pengurus')}</span>
+        <h3 class="text-xs font-bold text-text-primary leading-tight line-clamp-2 min-h-[32px] flex items-center justify-center">${esc(p.nama)}</h3>
+        <span class="text-[10px] text-text-muted mt-1">${esc(p.masa_bakti || '2024 - 2028')}</span>
       </div>
     `;
   }).join('');
 }
 
+let _pengurusAktifId = null;
+
 function bukaModalPengurusDetail(id) {
   const p = (APP_STATE.data.pengurus || []).find(item => item.id === id);
   if (!p) return;
 
-  document.getElementById('detailPengurusFoto').src = p.foto_url || './assets/logo.png';
+  document.getElementById('detailPengurusFoto').src = safeUrl(p.foto_url, './assets/logo.png');
   document.getElementById('detailPengurusJabatan').textContent = p.jabatan || 'Pengurus';
   document.getElementById('detailPengurusNama').textContent = p.nama || '';
   document.getElementById('detailPengurusMasa').textContent = 'Masa Bakti ' + (p.masa_bakti || '2024 - 2028');
   document.getElementById('detailPengurusBio').textContent = p.profil_singkat || 'Amanah kepengurusan takmir Masjid Al Ikhlash Pajangan.';
+
+  _pengurusAktifId = p.id;
+  document.getElementById('detailPengurusAdmin')?.classList.toggle('hidden', !APP_STATE.adminToken);
 
   const waBtn = document.getElementById('detailPengurusWA');
   if (waBtn) {
@@ -734,7 +775,7 @@ function setSlide(idx) {
   const capEl = document.getElementById('gallery-caption');
   const subEl = document.getElementById('gallery-sub');
 
-  if (imgEl) imgEl.src = item.foto_url || './assets/hero-masjid.png';
+  if (imgEl) imgEl.src = safeUrl(item.foto_url, './assets/hero-masjid.png');
   if (capEl) capEl.textContent = item.judul || 'Dokumentasi Kegiatan';
   if (subEl) subEl.textContent = item.keterangan || 'Masjid Al Ikhlash Pajangan';
 
@@ -758,6 +799,13 @@ function initGallerySlider() {
 // 9. ENGINE JADWAL SHOLAT & COUNTDOWN REAL-TIME (YOGYAKARTA / PAJANGAN)
 // ----------------------------------------------------------------------------
 function initPrayerTimes() {
+  // Judul bulan mengikuti tanggal perangkat, bukan teks tetap di HTML
+  const titleEl = document.getElementById('prayerMonthTitle');
+  if (titleEl) {
+    const bln = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+    const now = new Date();
+    titleEl.textContent = 'Jadwal Sholat — ' + bln[now.getMonth()] + ' ' + now.getFullYear();
+  }
   updatePrayerTimes();
   setInterval(updatePrayerTimes, 30000); // Update setiap 30 detik
 }
@@ -829,11 +877,12 @@ function updatePrayerTimes() {
 
 function unduhJadwalSholatPDF() {
   const pdfData = APP_STATE.data.jadwalPdf;
-  if (pdfData && pdfData.download_url) {
-    window.open(pdfData.download_url, '_blank');
+  const url = pdfData ? safeUrl(pdfData.download_url || pdfData.file_url, '') : '';
+  if (url) {
+    window.open(url, '_blank', 'noopener');
     showToast('Membuka dokumen Jadwal Sholat...', 'picture_as_pdf');
   } else {
-    showToast('Mengunduh Jadwal Imsakiyah & Sholat Resmi...', 'download_done');
+    showToast('Dokumen jadwal sholat belum tersedia. Silakan hubungi Takmir.', 'info');
   }
 }
 
@@ -948,7 +997,11 @@ async function submitFormDonasi(e) {
   btnSubmit.innerHTML = `<span class="material-symbols-outlined text-[18px]">send</span> <span>Kirim Konfirmasi Donasi</span>`;
 
   if (res && res.success) {
-    showToast('Alhamdulillah, konfirmasi donasi berhasil dikirim!', 'check_circle');
+    if (res.message && res.message.indexOf('Catatan:') > -1) {
+      showToast(res.message.slice(res.message.indexOf('Catatan:')).replace(' Jazakumullah khairan katsiran.', ''), 'warning', 9000);
+    } else {
+      showToast('Alhamdulillah, konfirmasi donasi berhasil dikirim!', 'check_circle');
+    }
     document.getElementById('donationForm').reset();
     _isHambaAllah = false;
     document.getElementById('formDonorName').readOnly = false;
@@ -982,6 +1035,9 @@ function updateAuthUI() {
 
   const adminPengBar = document.getElementById('adminPengurusActionBar');
   if (adminPengBar) adminPengBar.classList.toggle('hidden', !isAuth);
+
+  // Tombol Ubah/Hapus pada kartu kegiatan hanya muncul saat Takmir login
+  if (APP_STATE.data) renderKegiatanUI();
 }
 
 function openTakmirModal() {
@@ -1034,7 +1090,11 @@ async function handleLoginSubmit(e) {
     document.getElementById('takmirLoginContainer').classList.add('hidden');
     document.getElementById('takmirDashboardContainer').classList.remove('hidden');
     showToast('Login berhasil. Selamat bertugas Takmir!', 'verified');
-    muatAdminData();
+    if (res.user && res.user.wajibGantiPass) {
+      bukaModalWajibGanti();
+    } else {
+      muatAdminData();
+    }
   } else {
     errEl.textContent = res.message || 'Login gagal. Periksa username dan password.';
     errEl.classList.remove('hidden');
@@ -1048,6 +1108,7 @@ function logoutAdmin() {
   localStorage.removeItem('al_ikhlash_user');
   updateAuthUI();
   closeTakmirModal();
+  tutupEl_('modalWajibGanti');
   showToast('Anda telah keluar dari akun Takmir.', 'logout');
   applyKasFilter();
 }
@@ -1065,16 +1126,17 @@ async function muatAdminData() {
 
 function showAdminTab(tabName) {
   document.querySelectorAll('.admin-tab').forEach(b => {
-    b.classList.remove('active', 'bg-primary', 'text-on-primary');
-    b.classList.add('bg-surface-container', 'text-text-primary');
+    const aktif = b.dataset.tab === tabName;
+    b.classList.toggle('active', aktif);
+    b.classList.toggle('bg-primary', aktif);
+    b.classList.toggle('text-on-primary', aktif);
+    b.classList.toggle('bg-surface-container', !aktif);
+    b.classList.toggle('text-text-primary', !aktif);
   });
-  if (tabName === 'donasi') {
-    document.getElementById('adminPanelDonasi')?.classList.remove('hidden');
-    document.getElementById('adminPanelKas')?.classList.add('hidden');
-  } else {
-    document.getElementById('adminPanelDonasi')?.classList.add('hidden');
-    document.getElementById('adminPanelKas')?.classList.remove('hidden');
-  }
+  document.getElementById('adminPanelDonasi')?.classList.toggle('hidden', tabName !== 'donasi');
+  document.getElementById('adminPanelKas')?.classList.toggle('hidden', tabName !== 'kas');
+  document.getElementById('adminPanelKonten')?.classList.toggle('hidden', tabName !== 'konten');
+  if (tabName === 'konten') { renderAdminGaleriList(); isiFormProfil(); isiInfoJadwal(); }
 }
 
 function renderAdminDonasiList() {
@@ -1092,22 +1154,22 @@ function renderAdminDonasiList() {
     return `
       <div class="p-3 bg-surface rounded-xl flex flex-col gap-2 border border-border-divider/60 text-xs">
         <div class="flex items-center justify-between">
-          <span class="font-bold text-text-primary">${d.nama_donatur || 'Hamba Allah'}</span>
+          <span class="font-bold text-text-primary">${esc(d.nama_donatur || 'Hamba Allah')}</span>
           <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isPending ? 'bg-gold-light text-secondary' : 'bg-surface-container-low text-income-green'}">
-            ${d.status || 'Menunggu'}
+            ${esc(d.status || 'Menunggu')}
           </span>
         </div>
         <div class="flex justify-between text-text-muted text-[11px]">
-          <span>${d.program || 'Infaq'} • ${d.tanggal || ''}</span>
+          <span>${esc(d.program || 'Infaq')} • ${esc(d.tanggal || '')}</span>
           <span class="font-bold text-primary">${formatRupiah(d.nominal)}</span>
         </div>
-        ${d.doa_pesan ? `<p class="italic text-[11px] text-text-muted bg-surface-card p-2 rounded-lg">“${d.doa_pesan}”</p>` : ''}
+        ${d.doa_pesan ? `<p class="italic text-[11px] text-text-muted bg-surface-card p-2 rounded-lg">“${esc(d.doa_pesan)}”</p>` : ''}
         ${isPending ? `
           <div class="flex gap-2 pt-1">
-            <button onclick="verifikasiDonasi('${d.id}', 'Terverifikasi')" class="flex-1 py-1.5 rounded-lg bg-primary text-on-primary font-bold text-[11px] active:scale-95">
+            <button onclick="verifikasiDonasi('${esc(d.id)}', 'Terverifikasi')" class="flex-1 py-1.5 rounded-lg bg-primary text-on-primary font-bold text-[11px] active:scale-95">
               Setujui & Catat ke Kas
             </button>
-            <button onclick="verifikasiDonasi('${d.id}', 'Ditolak')" class="px-3 py-1.5 rounded-lg bg-surface-card text-error font-bold text-[11px] active:scale-95">
+            <button onclick="verifikasiDonasi('${esc(d.id)}', 'Ditolak')" class="px-3 py-1.5 rounded-lg bg-surface-card text-error font-bold text-[11px] active:scale-95">
               Tolak
             </button>
           </div>
@@ -1181,9 +1243,308 @@ async function hapusKasAdmin(idKas) {
 }
 
 // ----------------------------------------------------------------------------
+// 12b. ADMIN: KEGIATAN, PENGURUS, GALERI, PROFIL, GANTI SANDI
+// ----------------------------------------------------------------------------
+function bukaEl_(id) { const m = document.getElementById(id); if (m) { m.classList.remove('hidden'); m.classList.add('flex'); } }
+function tutupEl_(id) { const m = document.getElementById(id); if (m) { m.classList.add('hidden'); m.classList.remove('flex'); } }
+
+function sesiBerakhir_() {
+  APP_STATE.adminToken = null;
+  APP_STATE.adminUser = null;
+  localStorage.removeItem('al_ikhlash_token');
+  localStorage.removeItem('al_ikhlash_user');
+  tutupEl_('modalWajibGanti');
+  updateAuthUI();
+  showToast('Sesi berakhir. Silakan login kembali.', 'lock');
+  openTakmirModal();
+}
+
+async function simpanAdmin_(action, payload, btnId, pesanOk) {
+  const btn = document.getElementById(btnId);
+  if (btn) btn.disabled = true;
+  const res = await apiCall(action, payload, 'POST');
+  if (btn) btn.disabled = false;
+  if (res && res.success) {
+    showToast(pesanOk, 'check_circle');
+    await revalidatePublicData();
+    return true;
+  }
+  if (!res || (res.code !== 'UNAUTHORIZED' && res.code !== 'WAJIB_GANTI_PASS')) {
+    showToast('Gagal: ' + ((res && res.message) || 'Terjadi kesalahan.'), 'error');
+  }
+  return false;
+}
+
+// ---- Kegiatan ----
+function bukaModalTambahKegiatan() {
+  document.getElementById('formKegiatan').reset();
+  document.getElementById('kegId').value = '';
+  document.getElementById('kegPoster').value = '';
+  document.getElementById('kegTanggal').value = new Date().toISOString().slice(0, 10);
+  document.getElementById('kegMulai').value = '19:30';
+  document.getElementById('kegSelesai').value = '21:00';
+  document.getElementById('kegFormTitle').textContent = 'Tambah Jadwal Kegiatan';
+  bukaEl_('modalKegiatanForm');
+}
+
+function editKegiatan(id) {
+  const k = (APP_STATE.data.kegiatan || []).find(x => String(x.id) === String(id));
+  if (!k) return;
+  document.getElementById('kegId').value = k.id;
+  document.getElementById('kegPoster').value = k.poster_url || '';
+  document.getElementById('kegJudul').value = k.judul || '';
+  document.getElementById('kegKategori').value = k.kategori || '';
+  document.getElementById('kegTanggal').value = String(k.tanggal || '').slice(0, 10);
+  document.getElementById('kegMulai').value = k.waktu_mulai || '';
+  document.getElementById('kegSelesai').value = k.waktu_selesai || '';
+  document.getElementById('kegPenceramah').value = k.penceramah || '';
+  document.getElementById('kegLokasi').value = k.lokasi || '';
+  document.getElementById('kegKet').value = k.keterangan || '';
+  document.getElementById('kegFormTitle').textContent = 'Ubah Jadwal Kegiatan';
+  bukaEl_('modalKegiatanForm');
+}
+
+function tutupModalKegiatan() { tutupEl_('modalKegiatanForm'); }
+
+async function handleKegiatanSubmit(e) {
+  e.preventDefault();
+  const payload = {
+    id: document.getElementById('kegId').value || undefined,
+    judul: document.getElementById('kegJudul').value.trim(),
+    kategori: document.getElementById('kegKategori').value.trim(),
+    tanggal: document.getElementById('kegTanggal').value,
+    waktu_mulai: document.getElementById('kegMulai').value,
+    waktu_selesai: document.getElementById('kegSelesai').value,
+    penceramah: document.getElementById('kegPenceramah').value.trim(),
+    lokasi: document.getElementById('kegLokasi').value.trim(),
+    keterangan: document.getElementById('kegKet').value.trim(),
+    poster_url: document.getElementById('kegPoster').value
+  };
+  if (await simpanAdmin_('saveKegiatan', payload, 'btnSimpanKegiatan', 'Jadwal kegiatan berhasil disimpan.')) tutupModalKegiatan();
+}
+
+async function hapusKegiatan(id) {
+  const k = (APP_STATE.data.kegiatan || []).find(x => String(x.id) === String(id));
+  if (!confirm(`Hapus kegiatan "${k ? k.judul : id}"?`)) return;
+  const res = await apiCall('deleteKegiatan', { id: id }, 'POST');
+  if (res && res.success) { showToast('Kegiatan dihapus.', 'delete'); revalidatePublicData(); }
+  else if (!res || !res.code) showToast('Gagal: ' + ((res && res.message) || 'Error hapus'), 'error');
+}
+
+// ---- Pengurus ----
+function bukaModalTambahPengurus() {
+  document.getElementById('formPengurus').reset();
+  document.getElementById('pengId').value = '';
+  document.getElementById('pengUrutan').value = 10;
+  document.getElementById('pengFormTitle').textContent = 'Tambah Data Pengurus';
+  bukaEl_('modalPengurusForm');
+}
+
+function editPengurusAktif() {
+  const p = (APP_STATE.data.pengurus || []).find(x => String(x.id) === String(_pengurusAktifId));
+  if (!p) return;
+  document.getElementById('pengId').value = p.id;
+  document.getElementById('pengNama').value = p.nama || '';
+  document.getElementById('pengJabatan').value = p.jabatan || '';
+  document.getElementById('pengUrutan').value = p.urutan || 10;
+  document.getElementById('pengMasa').value = p.masa_bakti || '';
+  document.getElementById('pengWA').value = p.no_wa || '';
+  document.getElementById('pengFoto').value = p.foto_url || '';
+  document.getElementById('pengBio').value = p.profil_singkat || '';
+  document.getElementById('pengFormTitle').textContent = 'Ubah Data Pengurus';
+  tutupModalPengurusDetail();
+  bukaEl_('modalPengurusForm');
+}
+
+function tutupModalPengurusForm() { tutupEl_('modalPengurusForm'); }
+
+async function handlePengurusSubmit(e) {
+  e.preventDefault();
+  const payload = {
+    id: document.getElementById('pengId').value || undefined,
+    nama: document.getElementById('pengNama').value.trim(),
+    jabatan: document.getElementById('pengJabatan').value.trim(),
+    urutan: Number(document.getElementById('pengUrutan').value) || 10,
+    masa_bakti: document.getElementById('pengMasa').value.trim(),
+    no_wa: document.getElementById('pengWA').value.trim(),
+    foto_url: document.getElementById('pengFoto').value.trim(),
+    profil_singkat: document.getElementById('pengBio').value.trim()
+  };
+  if (await simpanAdmin_('savePengurus', payload, 'btnSimpanPengurus', 'Data pengurus berhasil disimpan.')) tutupModalPengurusForm();
+}
+
+async function hapusPengurusAktif() {
+  const p = (APP_STATE.data.pengurus || []).find(x => String(x.id) === String(_pengurusAktifId));
+  if (!p || !confirm(`Hapus data pengurus "${p.nama}"?`)) return;
+  const res = await apiCall('deletePengurus', { id: p.id }, 'POST');
+  if (res && res.success) {
+    showToast('Data pengurus dihapus.', 'delete');
+    tutupModalPengurusDetail();
+    revalidatePublicData();
+  } else if (!res || !res.code) showToast('Gagal: ' + ((res && res.message) || 'Error hapus'), 'error');
+}
+
+// ---- Galeri ----
+function renderAdminGaleriList() {
+  const box = document.getElementById('adminGaleriList');
+  if (!box) return;
+  const list = APP_STATE.data.galeri || [];
+  if (list.length === 0) {
+    box.innerHTML = '<p class="text-[11px] text-text-muted p-2">Belum ada foto galeri.</p>';
+    return;
+  }
+  box.innerHTML = list.map(g => `
+    <div class="flex items-center gap-2 p-2 bg-surface rounded-xl">
+      <img src="${esc(safeUrl(g.foto_url, './assets/logo.png'))}" alt="" class="w-10 h-10 rounded-lg object-cover bg-surface-dim flex-shrink-0"/>
+      <span class="text-xs font-semibold text-text-primary flex-1 truncate">${esc(g.judul)}</span>
+      <button onclick="hapusGaleri('${esc(g.id)}')" class="text-[11px] text-error font-bold px-2" type="button">Hapus</button>
+    </div>`).join('');
+}
+
+async function handleGaleriSubmit(e) {
+  e.preventDefault();
+  const payload = {
+    judul: document.getElementById('galJudul').value.trim(),
+    foto_url: document.getElementById('galUrl').value.trim(),
+    keterangan: document.getElementById('galKet').value.trim(),
+    urutan: (APP_STATE.data.galeri || []).length + 1
+  };
+  if (await simpanAdmin_('saveGaleri', payload, null, 'Foto galeri ditambahkan.')) {
+    document.getElementById('formGaleri').reset();
+    renderAdminGaleriList();
+  }
+}
+
+async function hapusGaleri(id) {
+  if (!confirm('Hapus foto ini dari galeri?')) return;
+  const res = await apiCall('deleteGaleri', { id: id }, 'POST');
+  if (res && res.success) {
+    showToast('Foto galeri dihapus.', 'delete');
+    await revalidatePublicData();
+    renderAdminGaleriList();
+  } else if (!res || !res.code) showToast('Gagal: ' + ((res && res.message) || 'Error hapus'), 'error');
+}
+
+// ---- Profil ----
+function isiFormProfil() {
+  const p = APP_STATE.data.profil || {};
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v || ''; };
+  set('profNama', p.NAMA_MASJID); set('profAfiliasi', p.AFILIASI); set('profAlamat', p.ALAMAT);
+  set('profVisi', p.VISI_MISI); set('profBank', p.BANK_ACCOUNT); set('profBankNama', p.BANK_HOLDER);
+  set('profWA', p.KONTAK_WA); set('profEmail', p.EMAIL); set('profMaps', p.MAPS_URL);
+}
+
+async function handleProfilSubmit(e) {
+  e.preventDefault();
+  const v = id => document.getElementById(id).value.trim();
+  const payload = {
+    NAMA_MASJID: v('profNama'), AFILIASI: v('profAfiliasi'), ALAMAT: v('profAlamat'),
+    VISI_MISI: v('profVisi'), BANK_ACCOUNT: v('profBank'), BANK_HOLDER: v('profBankNama'),
+    KONTAK_WA: v('profWA'), EMAIL: v('profEmail'), MAPS_URL: v('profMaps')
+  };
+  await simpanAdmin_('saveProfil', payload, null, 'Profil masjid berhasil diperbarui.');
+}
+
+// ---- Jadwal Sholat PDF ----
+function isiInfoJadwal() {
+  const j = APP_STATE.data.jadwalPdf;
+  const el = document.getElementById('jadwalAktifInfo');
+  if (!el) return;
+  const ada = j && (j.download_url || j.file_url);
+  el.textContent = 'Jadwal aktif: ' + (j && j.bulan_tahun ? j.bulan_tahun : '-') + (ada ? '' : ' (file belum diunggah)');
+}
+
+async function handleJadwalPdfSubmit(e) {
+  e.preventDefault();
+  const bulan = document.getElementById('jadwalBulan').value.trim();
+  const file = document.getElementById('jadwalFile').files[0];
+  if (!file) { showToast('Pilih file PDF terlebih dahulu.', 'warning'); return; }
+  if (file.type !== 'application/pdf' && !/\.pdf$/i.test(file.name)) {
+    showToast('File harus berformat PDF.', 'warning');
+    return;
+  }
+  if (file.size > 4 * 1024 * 1024) {
+    showToast('Ukuran PDF maksimal 4 MB.', 'warning');
+    return;
+  }
+  const btn = document.getElementById('btnJadwalPdf');
+  btn.disabled = true;
+  btn.textContent = 'Mengunggah...';
+  let b64 = '';
+  try { b64 = await readFileAsBase64(file); }
+  catch (err) { btn.disabled = false; btn.textContent = 'Unggah & Publikasikan'; showToast('Gagal membaca file.', 'error'); return; }
+
+  const ok = await simpanAdmin_('uploadJadwalPdf', { bulan_tahun: bulan, pdf_base64: b64 }, null, 'Jadwal sholat berhasil dipublikasikan.');
+  btn.disabled = false;
+  btn.textContent = 'Unggah & Publikasikan';
+  if (ok) {
+    document.getElementById('formJadwalPdf').reset();
+    isiInfoJadwal();
+  }
+}
+
+// ---- Ganti sandi ----
+function toggleGantiPassForm() {
+  document.getElementById('formGantiPass')?.classList.toggle('hidden');
+}
+
+async function ubahSandi_(lama, baru, konfirm) {
+  if (baru.length < 8) return 'Kata sandi baru minimal 8 karakter.';
+  if (baru !== konfirm) return 'Konfirmasi kata sandi tidak sama.';
+  if (baru === lama) return 'Kata sandi baru harus berbeda dari yang lama.';
+  const res = await apiCall('gantiPassword', { passwordLama: lama, passwordBaru: baru }, 'POST');
+  if (res && res.success) {
+    if (APP_STATE.adminUser) {
+      APP_STATE.adminUser.wajibGantiPass = false;
+      localStorage.setItem('al_ikhlash_user', JSON.stringify(APP_STATE.adminUser));
+    }
+    return '';
+  }
+  return (res && res.message) || 'Gagal mengganti kata sandi.';
+}
+
+async function handleGantiPassSubmit(e) {
+  e.preventDefault();
+  const err = await ubahSandi_(
+    document.getElementById('inputPassLama').value,
+    document.getElementById('inputPassBaru').value,
+    document.getElementById('inputPassKonfirm').value
+  );
+  if (err) { showToast(err, 'error'); return; }
+  document.getElementById('formGantiPass').reset();
+  document.getElementById('formGantiPass').classList.add('hidden');
+  showToast('Kata sandi berhasil diperbarui.', 'verified_user');
+}
+
+function bukaModalWajibGanti() {
+  document.getElementById('wgError')?.classList.add('hidden');
+  bukaEl_('modalWajibGanti');
+}
+
+async function handleWajibGantiSubmit(e) {
+  e.preventDefault();
+  const errEl = document.getElementById('wgError');
+  const btn = document.getElementById('btnWajibGanti');
+  errEl.classList.add('hidden');
+  btn.disabled = true;
+  const err = await ubahSandi_(
+    document.getElementById('wgLama').value,
+    document.getElementById('wgBaru').value,
+    document.getElementById('wgKonfirm').value
+  );
+  btn.disabled = false;
+  if (err) { errEl.textContent = err; errEl.classList.remove('hidden'); return; }
+  document.getElementById('formWajibGanti').reset();
+  tutupEl_('modalWajibGanti');
+  showToast('Kata sandi berhasil diganti. Selamat bertugas!', 'verified_user');
+  muatAdminData();
+}
+
+// ----------------------------------------------------------------------------
 // 13. TOAST MICRO-INTERACTION & SERVICE WORKER PWA
 // ----------------------------------------------------------------------------
-function showToast(msg, icon = 'check_circle') {
+let _toastTimer = null;
+function showToast(msg, icon = 'check_circle', ms = 3200) {
   const toast = document.getElementById('toast-feedback');
   const msgEl = document.getElementById('toast-message');
   const iconEl = document.getElementById('toast-icon');
@@ -1195,10 +1556,11 @@ function showToast(msg, icon = 'check_circle') {
   toast.classList.remove('opacity-0', 'pointer-events-none');
   toast.classList.add('opacity-100');
 
-  setTimeout(() => {
+  if (_toastTimer) clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => {
     toast.classList.remove('opacity-100');
     toast.classList.add('opacity-0', 'pointer-events-none');
-  }, 3200);
+  }, ms);
 }
 
 // Daftarkan Service Worker PWA (GAS-PWA-GITHUB)

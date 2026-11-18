@@ -4,7 +4,7 @@
  * ============================================================================
  */
 
-const CACHE_NAME = 'portal-ikhlash-v2.1';
+const CACHE_NAME = 'portal-ikhlash-v2.3';
 const STATIC_ASSETS = [
   './',
   './index.html',

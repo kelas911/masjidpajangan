@@ -1038,12 +1038,15 @@
         </div>
 
         <!-- Dashboard Action Tabs -->
-        <div class="grid grid-cols-2 gap-2 text-xs font-bold">
-          <button onclick="showAdminTab('donasi')" class="admin-tab active py-2 px-3 rounded-xl bg-primary text-on-primary text-center transition-colors">
-            Verifikasi Donasi
+        <div class="grid grid-cols-3 gap-2 text-xs font-bold">
+          <button onclick="showAdminTab('donasi')" data-tab="donasi" class="admin-tab active py-2 px-2 rounded-xl bg-primary text-on-primary text-center transition-colors" type="button">
+            Donasi
           </button>
-          <button onclick="showAdminTab('kas')" class="admin-tab py-2 px-3 rounded-xl bg-surface-container text-text-primary text-center transition-colors">
+          <button onclick="showAdminTab('kas')" data-tab="kas" class="admin-tab py-2 px-2 rounded-xl bg-surface-container text-text-primary text-center transition-colors" type="button">
             Buku Kas
+          </button>
+          <button onclick="showAdminTab('konten')" data-tab="konten" class="admin-tab py-2 px-2 rounded-xl bg-surface-container text-text-primary text-center transition-colors" type="button">
+            Galeri &amp; Profil
           </button>
         </div>
 
@@ -1074,6 +1077,49 @@
           </div>
         </div>
 
+        <!-- Sub-panel 3: Galeri & Profil -->
+        <div id="adminPanelKonten" class="hidden space-y-4">
+          <div class="space-y-2">
+            <h5 class="text-xs font-bold text-text-primary">Foto Galeri Beranda</h5>
+            <div id="adminGaleriList" class="space-y-2 max-h-48 overflow-y-auto no-scrollbar"></div>
+            <form id="formGaleri" onsubmit="handleGaleriSubmit(event)" class="p-3 bg-surface rounded-xl space-y-2">
+              <input id="galJudul" type="text" required maxlength="120" placeholder="Judul foto" class="w-full h-9 px-3 rounded-lg bg-surface-card text-xs outline-none focus:ring-1 focus:ring-primary"/>
+              <input id="galUrl" type="url" required placeholder="URL foto (https://...)" class="w-full h-9 px-3 rounded-lg bg-surface-card text-xs outline-none focus:ring-1 focus:ring-primary"/>
+              <input id="galKet" type="text" maxlength="300" placeholder="Keterangan (opsional)" class="w-full h-9 px-3 rounded-lg bg-surface-card text-xs outline-none focus:ring-1 focus:ring-primary"/>
+              <button type="submit" class="w-full h-8 rounded-lg bg-primary text-on-primary text-xs font-bold">Tambah Foto</button>
+            </form>
+          </div>
+
+          <div class="space-y-2">
+            <h5 class="text-xs font-bold text-text-primary">Jadwal Sholat (PDF)</h5>
+            <p id="jadwalAktifInfo" class="text-[11px] text-text-muted">Jadwal aktif: -</p>
+            <form id="formJadwalPdf" onsubmit="handleJadwalPdfSubmit(event)" class="p-3 bg-surface rounded-xl space-y-2">
+              <input id="jadwalBulan" type="text" required maxlength="40" placeholder="Bulan &amp; tahun (mis. Desember 2026)" class="w-full h-9 px-3 rounded-lg bg-surface-card text-xs outline-none focus:ring-1 focus:ring-primary"/>
+              <input id="jadwalFile" type="file" accept="application/pdf,.pdf" required class="w-full text-xs text-text-muted file:mr-2 file:h-8 file:px-3 file:rounded-lg file:border-0 file:bg-surface-container file:text-primary file:text-xs file:font-bold"/>
+              <p class="text-[10px] text-text-muted leading-snug">Maksimal 4 MB. Jadwal yang sedang aktif otomatis diarsipkan setelah unggahan berhasil.</p>
+              <button id="btnJadwalPdf" type="submit" class="w-full h-8 rounded-lg bg-primary text-on-primary text-xs font-bold">Unggah &amp; Publikasikan</button>
+            </form>
+          </div>
+
+          <div class="space-y-2">
+            <h5 class="text-xs font-bold text-text-primary">Profil &amp; Rekening Masjid</h5>
+            <form id="formProfil" onsubmit="handleProfilSubmit(event)" class="p-3 bg-surface rounded-xl space-y-2">
+              <input id="profNama" type="text" maxlength="100" placeholder="Nama masjid" class="w-full h-9 px-3 rounded-lg bg-surface-card text-xs outline-none focus:ring-1 focus:ring-primary"/>
+              <input id="profAfiliasi" type="text" maxlength="100" placeholder="Afiliasi (mis. PRM Pajangan)" class="w-full h-9 px-3 rounded-lg bg-surface-card text-xs outline-none focus:ring-1 focus:ring-primary"/>
+              <textarea id="profAlamat" maxlength="300" placeholder="Alamat" class="w-full p-2.5 rounded-lg bg-surface-card text-xs outline-none focus:ring-1 focus:ring-primary h-14 resize-none"></textarea>
+              <textarea id="profVisi" maxlength="1000" placeholder="Visi &amp; misi" class="w-full p-2.5 rounded-lg bg-surface-card text-xs outline-none focus:ring-1 focus:ring-primary h-20 resize-none"></textarea>
+              <div class="grid grid-cols-2 gap-2">
+                <input id="profBank" type="text" maxlength="40" placeholder="No. rekening" class="w-full h-9 px-3 rounded-lg bg-surface-card text-xs outline-none focus:ring-1 focus:ring-primary"/>
+                <input id="profBankNama" type="text" maxlength="80" placeholder="Atas nama" class="w-full h-9 px-3 rounded-lg bg-surface-card text-xs outline-none focus:ring-1 focus:ring-primary"/>
+              </div>
+              <input id="profWA" type="text" maxlength="20" placeholder="WhatsApp (628...)" class="w-full h-9 px-3 rounded-lg bg-surface-card text-xs outline-none focus:ring-1 focus:ring-primary"/>
+              <input id="profEmail" type="email" maxlength="100" placeholder="Email" class="w-full h-9 px-3 rounded-lg bg-surface-card text-xs outline-none focus:ring-1 focus:ring-primary"/>
+              <input id="profMaps" type="url" placeholder="Tautan Google Maps (https://...)" class="w-full h-9 px-3 rounded-lg bg-surface-card text-xs outline-none focus:ring-1 focus:ring-primary"/>
+              <button type="submit" class="w-full h-8 rounded-lg bg-primary text-on-primary text-xs font-bold">Simpan Profil</button>
+            </form>
+          </div>
+        </div>
+
         <!-- Pengaturan Tambahan: Ganti Password & Dokumen -->
         <div class="pt-2 border-t border-border-divider/60 space-y-2">
           <button onclick="toggleGantiPassForm()" class="w-full py-2 rounded-xl bg-surface-container text-text-primary text-xs font-semibold flex items-center justify-between px-3">
@@ -1082,7 +1128,9 @@
           </button>
 
           <form id="formGantiPass" onsubmit="handleGantiPassSubmit(event)" class="hidden p-3 bg-surface rounded-xl space-y-2">
-            <input id="inputPassBaru" type="password" placeholder="Kata sandi baru (min 8 karakter)" required class="w-full h-9 px-3 rounded-lg bg-surface-card text-xs outline-none focus:ring-1 focus:ring-primary"/>
+            <input id="inputPassLama" type="password" autocomplete="current-password" placeholder="Kata sandi lama" required class="w-full h-9 px-3 rounded-lg bg-surface-card text-xs outline-none focus:ring-1 focus:ring-primary"/>
+            <input id="inputPassBaru" type="password" autocomplete="new-password" minlength="8" maxlength="100" placeholder="Kata sandi baru (min 8 karakter)" required class="w-full h-9 px-3 rounded-lg bg-surface-card text-xs outline-none focus:ring-1 focus:ring-primary"/>
+            <input id="inputPassKonfirm" type="password" autocomplete="new-password" placeholder="Ulangi kata sandi baru" required class="w-full h-9 px-3 rounded-lg bg-surface-card text-xs outline-none focus:ring-1 focus:ring-primary"/>
             <button type="submit" class="w-full h-8 rounded-lg bg-primary text-on-primary text-xs font-bold">Simpan Sandi Baru</button>
           </form>
         </div>
@@ -1173,10 +1221,139 @@
         <p id="detailPengurusBio" class="text-text-muted leading-relaxed">Profil takmir belum diisi.</p>
       </div>
 
+      <div id="detailPengurusAdmin" class="hidden w-full grid grid-cols-2 gap-2 mb-2">
+        <button onclick="editPengurusAktif()" class="h-9 rounded-xl bg-primary text-on-primary text-xs font-bold" type="button">Ubah</button>
+        <button onclick="hapusPengurusAktif()" class="h-9 rounded-xl bg-error-container/40 text-error text-xs font-bold" type="button">Hapus</button>
+      </div>
+
       <a id="detailPengurusWA" href="#" target="_blank" class="w-full h-10 rounded-xl bg-surface-container text-primary text-xs font-bold flex items-center justify-center gap-1.5 hover:bg-surface-container-high transition-colors">
         <span class="material-symbols-outlined text-[16px] text-income-green">chat</span>
         <span>Hubungi WhatsApp</span>
       </a>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       MODAL: FORM KEGIATAN (TAMBAH / UBAH)
+       ====================================================================== -->
+  <div id="modalKegiatanForm" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-4">
+    <div class="bg-surface-card rounded-2xl w-full max-w-sm max-h-[90vh] overflow-y-auto p-4 shadow-2xl border border-border-divider flex flex-col space-y-3">
+      <div class="flex items-center justify-between pb-2 border-b border-border-divider/50">
+        <h4 id="kegFormTitle" class="text-sm font-bold text-text-primary">Tambah Jadwal Kegiatan</h4>
+        <button onclick="tutupModalKegiatan()" class="text-text-muted hover:text-text-primary" type="button">
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+      <form id="formKegiatan" onsubmit="handleKegiatanSubmit(event)" class="space-y-3">
+        <input id="kegId" type="hidden"/>
+        <input id="kegPoster" type="hidden"/>
+        <div>
+          <label class="text-xs font-semibold text-text-primary block mb-1">Judul Kegiatan</label>
+          <input id="kegJudul" type="text" required maxlength="150" class="w-full h-10 px-3 rounded-xl bg-surface text-xs outline-none focus:ring-1 focus:ring-primary"/>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-xs font-semibold text-text-primary block mb-1">Kategori</label>
+            <input id="kegKategori" list="kegKategoriList" maxlength="60" placeholder="Kajian Rutin" class="w-full h-10 px-2.5 rounded-xl bg-surface text-xs outline-none focus:ring-1 focus:ring-primary"/>
+            <datalist id="kegKategoriList"><option value="Kajian Rutin"></option><option value="Kajian Akbar"></option><option value="Sholat Jumat"></option><option value="PHBI"></option><option value="Sosial"></option></datalist>
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-text-primary block mb-1">Tanggal</label>
+            <input id="kegTanggal" type="date" required class="w-full h-10 px-2.5 rounded-xl bg-surface text-xs outline-none focus:ring-1 focus:ring-primary"/>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-xs font-semibold text-text-primary block mb-1">Mulai</label>
+            <input id="kegMulai" type="time" value="19:30" class="w-full h-10 px-2.5 rounded-xl bg-surface text-xs outline-none focus:ring-1 focus:ring-primary"/>
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-text-primary block mb-1">Selesai</label>
+            <input id="kegSelesai" type="time" value="21:00" class="w-full h-10 px-2.5 rounded-xl bg-surface text-xs outline-none focus:ring-1 focus:ring-primary"/>
+          </div>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-text-primary block mb-1">Penceramah / Pengisi</label>
+          <input id="kegPenceramah" type="text" maxlength="100" class="w-full h-10 px-3 rounded-xl bg-surface text-xs outline-none focus:ring-1 focus:ring-primary"/>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-text-primary block mb-1">Lokasi</label>
+          <input id="kegLokasi" type="text" maxlength="120" placeholder="Masjid Al Ikhlash" class="w-full h-10 px-3 rounded-xl bg-surface text-xs outline-none focus:ring-1 focus:ring-primary"/>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-text-primary block mb-1">Keterangan</label>
+          <textarea id="kegKet" maxlength="500" class="w-full p-2.5 rounded-xl bg-surface text-xs outline-none focus:ring-1 focus:ring-primary h-16 resize-none"></textarea>
+        </div>
+        <button id="btnSimpanKegiatan" type="submit" class="w-full h-11 rounded-xl bg-primary text-on-primary text-xs font-bold shadow-md active:scale-98 transition-all">Simpan Kegiatan</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       MODAL: FORM PENGURUS (TAMBAH / UBAH)
+       ====================================================================== -->
+  <div id="modalPengurusForm" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-4">
+    <div class="bg-surface-card rounded-2xl w-full max-w-sm max-h-[90vh] overflow-y-auto p-4 shadow-2xl border border-border-divider flex flex-col space-y-3">
+      <div class="flex items-center justify-between pb-2 border-b border-border-divider/50">
+        <h4 id="pengFormTitle" class="text-sm font-bold text-text-primary">Tambah Data Pengurus</h4>
+        <button onclick="tutupModalPengurusForm()" class="text-text-muted hover:text-text-primary" type="button">
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+      <form id="formPengurus" onsubmit="handlePengurusSubmit(event)" class="space-y-3">
+        <input id="pengId" type="hidden"/>
+        <div>
+          <label class="text-xs font-semibold text-text-primary block mb-1">Nama</label>
+          <input id="pengNama" type="text" required maxlength="100" class="w-full h-10 px-3 rounded-xl bg-surface text-xs outline-none focus:ring-1 focus:ring-primary"/>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-xs font-semibold text-text-primary block mb-1">Jabatan</label>
+            <input id="pengJabatan" type="text" required maxlength="80" class="w-full h-10 px-2.5 rounded-xl bg-surface text-xs outline-none focus:ring-1 focus:ring-primary"/>
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-text-primary block mb-1">Urutan Tampil</label>
+            <input id="pengUrutan" type="number" min="1" max="99" value="10" class="w-full h-10 px-2.5 rounded-xl bg-surface text-xs outline-none focus:ring-1 focus:ring-primary"/>
+          </div>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-text-primary block mb-1">Masa Bakti</label>
+          <input id="pengMasa" type="text" maxlength="30" placeholder="2024 - 2028" class="w-full h-10 px-3 rounded-xl bg-surface text-xs outline-none focus:ring-1 focus:ring-primary"/>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-text-primary block mb-1">No. WhatsApp</label>
+          <input id="pengWA" type="text" maxlength="20" placeholder="628xxxxxxxxxx" class="w-full h-10 px-3 rounded-xl bg-surface text-xs outline-none focus:ring-1 focus:ring-primary"/>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-text-primary block mb-1">URL Foto (opsional)</label>
+          <input id="pengFoto" type="url" placeholder="https://..." class="w-full h-10 px-3 rounded-xl bg-surface text-xs outline-none focus:ring-1 focus:ring-primary"/>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-text-primary block mb-1">Tugas &amp; Amanah</label>
+          <textarea id="pengBio" maxlength="500" class="w-full p-2.5 rounded-xl bg-surface text-xs outline-none focus:ring-1 focus:ring-primary h-16 resize-none"></textarea>
+        </div>
+        <button id="btnSimpanPengurus" type="submit" class="w-full h-11 rounded-xl bg-primary text-on-primary text-xs font-bold shadow-md active:scale-98 transition-all">Simpan Pengurus</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       MODAL: WAJIB GANTI SANDI AWAL (tidak bisa ditutup)
+       ====================================================================== -->
+  <div id="modalWajibGanti" class="fixed inset-0 z-[70] modal-backdrop hidden items-center justify-center p-4">
+    <div class="bg-surface-card rounded-2xl w-full max-w-sm p-4 shadow-2xl border border-border-divider flex flex-col space-y-3">
+      <div class="pb-2 border-b border-border-divider/50">
+        <h4 class="text-sm font-bold text-text-primary">Ganti Kata Sandi Awal</h4>
+        <p class="text-[11px] text-text-muted mt-1 leading-snug">Demi keamanan, kata sandi awal wajib diganti sebelum Anda dapat mengelola data masjid.</p>
+      </div>
+      <form id="formWajibGanti" onsubmit="handleWajibGantiSubmit(event)" class="space-y-2">
+        <input id="wgLama" type="password" autocomplete="current-password" placeholder="Kata sandi lama" required class="w-full h-10 px-3 rounded-xl bg-surface text-xs outline-none focus:ring-1 focus:ring-primary"/>
+        <input id="wgBaru" type="password" autocomplete="new-password" minlength="8" maxlength="100" placeholder="Kata sandi baru (min 8 karakter)" required class="w-full h-10 px-3 rounded-xl bg-surface text-xs outline-none focus:ring-1 focus:ring-primary"/>
+        <input id="wgKonfirm" type="password" autocomplete="new-password" placeholder="Ulangi kata sandi baru" required class="w-full h-10 px-3 rounded-xl bg-surface text-xs outline-none focus:ring-1 focus:ring-primary"/>
+        <p id="wgError" class="hidden text-[11px] text-error font-semibold"></p>
+        <button id="btnWajibGanti" type="submit" class="w-full h-11 rounded-xl bg-primary text-on-primary text-xs font-bold shadow-md active:scale-98 transition-all">Simpan Sandi Baru</button>
+        <button onclick="logoutAdmin()" type="button" class="w-full h-9 rounded-xl bg-surface-container text-text-muted text-xs font-semibold">Keluar</button>
+      </form>
     </div>
   </div>
 

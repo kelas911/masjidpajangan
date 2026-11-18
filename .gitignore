@@ -1,0 +1,6 @@
+# Jangan pernah commit log setup / kredensial
+SetupEnvironment.txt
+*.log
+.env
+.clasp.json
+.DS_Store
