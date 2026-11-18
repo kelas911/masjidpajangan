@@ -1,0 +1,13 @@
+21.55.08	Peringatan	Eksekusi dimulai
+21.55.09	Info	🚀 Memulai inisialisasi lingkungan untuk: Portal Masjid Al Ikhlash Pajangan
+21.55.31	Info	================================================================
+21.55.31	Info	✅ SUKSES SETUP PORTAL MASJID AL IKHLASH
+21.55.32	Info	Spreadsheet URL : https://docs.google.com/spreadsheets/d/1aVV2027NqbjsbG9lYpIHdMOHAWC2UIHpSj-1qnuEEDE/edit
+21.55.32	Info	Root Folder URL : https://drive.google.com/drive/folders/1gzcQ1N6cIk36t7WvGpxa6QABfg3w7gd1
+21.55.32	Info	----------------------------------------------------------------
+21.55.32	Info	🔐 KREDENSIAL DEFAULT TAKMIR ADMIN (Catat sekarang):
+21.55.32	Info	   Username : admin
+21.55.32	Info	   Password : 89tNCGLH4HcX
+21.55.32	Info	*(Sandi wajib diganti saat pertama kali login)*
+21.55.32	Info	================================================================
+21.55.32	Peringatan	Eksekusi selesai

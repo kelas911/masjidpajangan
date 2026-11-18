@@ -1,0 +1,134 @@
+/* ==========================================================================
+   PORTAL MASJID AL IKHLASH (MD PAJANGAN) — STYLESHEET
+   Desain: Serambi Al Ikhlash (Modern Tactile Minimalism)
+   ========================================================================== */
+
+:root {
+  --primary: #004325;
+  --primary-container: #0b5d36;
+  --surface: #F3F8F5;
+  --surface-card: #FFFFFF;
+  --gold-light: #FEF8E7;
+  --secondary: #7b5800;
+  --secondary-container: #fdbf35;
+  --income-green: #138A4E;
+  --expense-red: #D9383A;
+  --text-primary: #1A2E24;
+  --text-muted: #526B5E;
+  --border-divider: #DDE8E1;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: var(--surface);
+  color: var(--text-primary);
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  overscroll-behavior-y: none;
+}
+
+/* Safe area padding for iPhone & modern Android notch / home bar */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* Hide scrollbars while allowing touch scrolling */
+.no-scrollbar::-webkit-scrollbar,
+::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* View switching animation */
+.spa-view {
+  display: none;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.spa-view.active {
+  display: flex;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Button & Card tactile press feedback */
+button, .btn-tactile, .clickable {
+  user-select: none;
+  transition: transform 0.12s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+button:active, .btn-tactile:active, .clickable:active {
+  transform: scale(0.97);
+}
+
+/* Bottom Navigation active styles */
+.nav-tab.active {
+  color: #0b5d36 !important;
+  font-weight: 700 !important;
+}
+
+.nav-tab.active span.material-symbols-outlined {
+  font-variation-settings: 'FILL' 1, 'wght' 600;
+  transform: translateY(-1px);
+}
+
+/* Toast Notification */
+#toast-feedback {
+  transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Modal styling */
+.modal-backdrop {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  background-color: rgba(11, 31, 22, 0.55);
+}
+
+/* Pulse animation for prayer countdown */
+@keyframes softPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+.pulse-soft {
+  animation: softPulse 2s infinite ease-in-out;
+}
+
+/* Print styling for PDF/Laporan Kas */
+@media print {
+  header, nav, #btnInstall, .no-print, #toast-feedback, .admin-actions {
+    display: none !important;
+  }
+  body, main {
+    background: #fff !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  .spa-view {
+    display: block !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  #view-beranda, #view-donasi, #view-kegiatan, #view-pengurus {
+    display: none !important;
+  }
+  #view-kas {
+    display: block !important;
+  }
+}

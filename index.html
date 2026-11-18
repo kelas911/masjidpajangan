@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+  <meta name="theme-color" content="#0B5D36"/>
+  <meta name="description" content="Portal Informasi, Transparansi Keuangan Kas, Infaq Online, dan Jadwal Kajian Masjid Al Ikhlash Pajangan"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="Al-Ikhlash"/>
+  
+  <title>Portal Masjid Al Ikhlash — MD Pajangan</title>
+
+  <!-- PWA Manifest & App Icons -->
+  <link rel="manifest" href="./manifest.json"/>
+  <link rel="apple-touch-icon" href="./assets/icon-192.png"/>
+  <link rel="icon" type="image/png" href="./assets/icon-192.png"/>
+
+  <!-- Typography & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#004325",
+            "primary-container": "#0b5d36",
+            "on-primary": "#ffffff",
+            "on-primary-container": "#8ad4a2",
+            "primary-fixed": "#a8f3c0",
+            "primary-fixed-dim": "#8cd7a5",
+            "surface": "#F3F8F5",
+            "surface-dim": "#c8e0d1",
+            "surface-bright": "#e8fff0",
+            "surface-card": "#FFFFFF",
+            "surface-container-lowest": "#ffffff",
+            "surface-container-low": "#e1f9ea",
+            "surface-container": "#dcf4e4",
+            "surface-container-high": "#d6eede",
+            "surface-container-highest": "#d0e8d9",
+            "gold-light": "#FEF8E7",
+            "secondary": "#7b5800",
+            "secondary-container": "#fdbf35",
+            "on-secondary-container": "#6e4f00",
+            "secondary-fixed": "#ffdea5",
+            "income-green": "#138A4E",
+            "expense-red": "#D9383A",
+            "text-primary": "#1A2E24",
+            "text-muted": "#526B5E",
+            "border-divider": "#DDE8E1",
+            "error": "#ba1a1a",
+            "error-container": "#ffdad6"
+          },
+          fontFamily: {
+            sans: ["'Plus Jakarta Sans'", "sans-serif"]
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="./css/style.css"/>
+</head>
+<body class="bg-surface text-text-primary flex flex-col min-h-screen">
+
+  <!-- ======================================================================
+       HEADER UTAMA (PERSISTENT WITH TITLE & TAKMIR BUTTON)
+       ====================================================================== -->
+  <header class="fixed top-0 w-full z-40 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(11,93,54,0.06)] pt-safe">
+    <div class="h-16 px-4 max-w-lg mx-auto flex items-center justify-between gap-2">
+      <!-- Logo & App Name -->
+      <div class="flex items-center gap-2.5 min-w-0 cursor-pointer" onclick="navigateTab('beranda')">
+        <img alt="Logo Muhammadiyah" class="h-8 w-auto object-contain flex-shrink-0" src="./assets/logo.png"/>
+        <div class="flex flex-col min-w-0">
+          <span class="font-bold text-[17px] text-primary truncate leading-tight">Masjid Al Ikhlash</span>
+          <span class="text-xs text-text-muted truncate font-medium" id="headerSubtitle">Beranda</span>
+        </div>
+      </div>
+
+      <!-- Right Header Actions: Takmir Portal Button -->
+      <div class="flex items-center gap-2 flex-shrink-0">
+        <!-- PWA Install Button (Hidden until available) -->
+        <button id="btnInstall" class="hidden px-2.5 py-1.5 rounded-full bg-primary text-on-primary text-xs font-semibold flex items-center gap-1 shadow-sm active:scale-95 transition-transform" type="button">
+          <span class="material-symbols-outlined text-[16px]">install_mobile</span>
+          <span class="hidden sm:inline">Pasang</span>
+        </button>
+
+        <!-- Takmir Admin Trigger -->
+        <button id="btnTakmirModal" onclick="openTakmirModal()" class="min-h-[38px] px-3 py-1.5 rounded-full bg-gold-light text-secondary flex items-center justify-center gap-1.5 text-xs font-bold hover:bg-secondary-fixed/60 transition-colors shadow-sm" type="button">
+          <span class="material-symbols-outlined text-[18px]">admin_panel_settings</span>
+          <span id="takmirBtnLabel">Takmir</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ======================================================================
+       MAIN CONTENT CONTAINER (SPA VIEWS)
+       ====================================================================== -->
+  <main class="flex flex-col relative w-full px-4 pt-20 pb-28 max-w-lg mx-auto min-h-screen">
+
+    <!-- Offline Alert Banner -->
+    <div id="offlineBanner" class="hidden mb-3 p-3 rounded-xl bg-amber-100 text-amber-900 text-xs font-medium flex items-center gap-2 shadow-sm">
+      <span class="material-symbols-outlined text-[18px]">wifi_off</span>
+      <span>Anda sedang offline. Menampilkan data tersimpan dari memori lokal.</span>
+    </div>
+
+    <!-- --------------------------------------------------------------------
+         VIEW 1: BERANDA MASJID
+         -------------------------------------------------------------------- -->
+    <section id="view-beranda" class="spa-view active flex flex-col w-full space-y-4">
+      
+      <!-- Hero Card with Mosque Photo & Muhammadiyah Watermark -->
+      <div class="relative w-full rounded-2xl overflow-hidden shadow-md bg-primary">
+        <div class="relative w-full h-56 sm:h-64 overflow-hidden">
+          <img alt="Masjid Al Ikhlash" class="w-full h-full object-cover object-center" src="./assets/hero-masjid.png"/>
+          <div class="absolute inset-0 bg-gradient-to-t from-primary via-primary/40 to-transparent"></div>
+          
+          <!-- Muhammadiyah Emblem Watermark Badge in Corner -->
+          <div class="absolute top-3 right-3 w-12 h-12 rounded-full bg-primary/50 backdrop-blur-md p-1.5 flex items-center justify-center opacity-90 shadow-sm">
+            <img alt="Logo Muhammadiyah" class="w-full h-full object-contain filter drop-shadow" src="./assets/logo.png"/>
+          </div>
+        </div>
+
+        <!-- Hero Content Overlay -->
+        <div class="absolute bottom-0 inset-x-0 p-4 flex flex-col items-start gap-1.5 text-on-primary">
+          <div class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-secondary-container text-on-secondary-container shadow-sm">
+            <span class="material-symbols-outlined text-[15px]" style="font-variation-settings: 'FILL' 1;">waving_hand</span>
+            <span class="text-xs font-bold tracking-wide">Assalamu'alaikum Jamaah</span>
+          </div>
+          <h1 class="text-2xl sm:text-3xl text-surface-card drop-shadow font-extrabold tracking-tight" id="heroMosqueName">
+            Masjid Al Ikhlash
+          </h1>
+          <p class="text-xs text-surface-container-low flex items-center gap-1 font-medium" id="heroMosqueAffiliation">
+            <span class="material-symbols-outlined text-[14px]">location_on</span>
+            Pimpinan Ranting Muhammadiyah Pajangan • Yogyakarta
+          </p>
+        </div>
+      </div>
+
+      <!-- Quick Access Action Row (4 Icons) -->
+      <div class="bg-surface-card rounded-2xl p-3.5 shadow-sm flex items-center justify-between gap-1">
+        <button class="flex flex-col items-center gap-1.5 group flex-1 text-center transition-transform active:scale-95" onclick="navigateTab('kas')" type="button">
+          <div class="w-12 h-12 p-2.5 rounded-2xl bg-surface-container flex items-center justify-center text-primary group-hover:bg-primary-fixed transition-colors shadow-sm">
+            <span class="material-symbols-outlined text-[24px]">account_balance_wallet</span>
+          </div>
+          <span class="text-xs font-semibold text-text-primary leading-tight">Laporan Kas</span>
+        </button>
+
+        <button class="flex flex-col items-center gap-1.5 group flex-1 text-center transition-transform active:scale-95" onclick="navigateTab('donasi')" type="button">
+          <div class="w-12 h-12 p-2.5 rounded-2xl bg-surface-container flex items-center justify-center text-primary group-hover:bg-primary-fixed transition-colors shadow-sm">
+            <span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">volunteer_activism</span>
+          </div>
+          <span class="text-xs font-semibold text-text-primary leading-tight">Infaq Online</span>
+        </button>
+
+        <button class="flex flex-col items-center gap-1.5 group flex-1 text-center transition-transform active:scale-95" onclick="navigateTab('kegiatan')" type="button">
+          <div class="w-12 h-12 p-2.5 rounded-2xl bg-surface-container flex items-center justify-center text-primary group-hover:bg-primary-fixed transition-colors shadow-sm">
+            <span class="material-symbols-outlined text-[24px]">event_note</span>
+          </div>
+          <span class="text-xs font-semibold text-text-primary leading-tight">Jadwal Kajian</span>
+        </button>
+
+        <button class="flex flex-col items-center gap-1.5 group flex-1 text-center transition-transform active:scale-95" onclick="navigateTab('pengurus')" type="button">
+          <div class="w-12 h-12 p-2.5 rounded-2xl bg-surface-container flex items-center justify-center text-primary group-hover:bg-primary-fixed transition-colors shadow-sm">
+            <span class="material-symbols-outlined text-[24px]">groups</span>
+          </div>
+          <span class="text-xs font-semibold text-text-primary leading-tight">Profil & Takmir</span>
+        </button>
+      </div>
+
+      <!-- Prayer Schedule Card with Live Countdown & Embedded PDF Trigger -->
+      <div class="bg-surface-card rounded-2xl overflow-hidden shadow-sm flex flex-col">
+        <!-- Card Header -->
+        <div class="bg-primary text-on-primary px-4 py-3 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-[20px] text-primary-fixed">schedule</span>
+            <span class="text-sm sm:text-base font-bold tracking-tight" id="prayerMonthTitle">Jadwal Sholat — November 2026</span>
+          </div>
+          <span class="px-2 py-0.5 rounded-full bg-primary-container text-on-primary-container text-xs font-bold">WIB</span>
+        </div>
+
+        <!-- Active Countdown Banner -->
+        <div class="bg-gold-light px-4 py-2.5 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="relative flex h-2.5 w-2.5">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-secondary"></span>
+            </span>
+            <p class="text-xs font-semibold text-secondary" id="prayerCountdownText">
+              Menghitung jadwal sholat...
+            </p>
+          </div>
+          <span class="text-[11px] text-text-muted font-medium">Pajangan, DIY</span>
+        </div>
+
+        <!-- Prayer Times Mini Grid -->
+        <div class="p-3 grid grid-cols-3 sm:grid-cols-6 gap-2" id="prayerGridContainer">
+          <!-- Subuh -->
+          <div id="prayer-subuh" class="bg-surface-container-low rounded-xl p-2.5 flex flex-col items-center text-center transition-all">
+            <span class="text-xs text-text-muted font-medium">Subuh</span>
+            <span class="text-sm font-bold text-text-primary mt-0.5" id="time-subuh">04:12</span>
+          </div>
+          <!-- Terbit -->
+          <div id="prayer-terbit" class="bg-surface rounded-xl p-2.5 flex flex-col items-center text-center opacity-80 transition-all">
+            <span class="text-xs text-text-muted font-medium">Terbit</span>
+            <span class="text-sm font-medium text-text-muted mt-0.5" id="time-terbit">05:30</span>
+          </div>
+          <!-- Dzuhur -->
+          <div id="prayer-dzuhur" class="bg-surface-container-low rounded-xl p-2.5 flex flex-col items-center text-center transition-all">
+            <span class="text-xs text-text-muted font-medium">Dzuhur</span>
+            <span class="text-sm font-bold text-text-primary mt-0.5" id="time-dzuhur">11:45</span>
+          </div>
+          <!-- Ashar -->
+          <div id="prayer-ashar" class="bg-surface-container-low rounded-xl p-2.5 flex flex-col items-center text-center transition-all">
+            <span class="text-xs text-text-muted font-medium">Ashar</span>
+            <span class="text-sm font-bold text-text-primary mt-0.5" id="time-ashar">15:14</span>
+          </div>
+          <!-- Maghrib -->
+          <div id="prayer-maghrib" class="bg-surface-container-low rounded-xl p-2.5 flex flex-col items-center text-center transition-all">
+            <span class="text-xs text-text-muted font-medium">Maghrib</span>
+            <span class="text-sm font-bold text-text-primary mt-0.5" id="time-maghrib">17:52</span>
+          </div>
+          <!-- Isya -->
+          <div id="prayer-isya" class="bg-surface-container-low rounded-xl p-2.5 flex flex-col items-center text-center transition-all">
+            <span class="text-xs text-text-muted font-medium">Isya</span>
+            <span class="text-sm font-bold text-text-primary mt-0.5" id="time-isya">19:04</span>
+          </div>
+        </div>
+
+        <!-- Embedded PDF Preview Strip & Action -->
+        <div class="mx-3.5 mb-3.5 p-3 rounded-xl bg-surface-container flex items-center justify-between gap-3">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div class="w-10 h-10 rounded-lg bg-surface-card flex items-center justify-center text-error flex-shrink-0 shadow-sm">
+              <span class="material-symbols-outlined text-[24px]">picture_as_pdf</span>
+            </div>
+            <div class="flex flex-col min-w-0">
+              <span class="text-xs font-bold text-text-primary truncate" id="pdfFileName">Jadwal-Sholat-Resmi.pdf</span>
+              <span class="text-[11px] text-text-muted truncate">Format Resmi Majelis Tarjih (A4 Siap Cetak)</span>
+            </div>
+          </div>
+          <button class="h-9 px-3 rounded-xl bg-secondary-container text-on-secondary-container text-xs font-bold flex items-center gap-1 shadow-sm active:scale-95 transition-transform flex-shrink-0" onclick="unduhJadwalSholatPDF()" type="button">
+            <span class="material-symbols-outlined text-[16px]">download</span>
+            <span>Unduh</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Gallery Slider: Kajian & Syiar Card (2s Auto-slide) -->
+      <div class="space-y-2">
+        <div class="flex items-center justify-between px-1">
+          <div class="flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-primary text-[20px]">photo_library</span>
+            <h2 class="text-sm font-bold text-text-primary">Agenda & Dokumentasi</h2>
+          </div>
+          <button class="text-xs font-bold text-primary flex items-center gap-0.5" onclick="navigateTab('kegiatan')" type="button">
+            Lihat Semua <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+          </button>
+        </div>
+
+        <!-- 16:9 Aspect Ratio Slider Container -->
+        <div class="relative w-full aspect-video rounded-2xl overflow-hidden shadow-sm bg-surface-dim group">
+          <img id="gallery-image" alt="Dokumentasi Masjid" class="w-full h-full object-cover transition-opacity duration-500" src="./assets/hero-masjid.png"/>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+          
+          <!-- Slide Info -->
+          <div class="absolute bottom-0 inset-x-0 p-4 flex flex-col justify-end">
+            <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-secondary-container text-on-secondary-container text-[11px] font-bold w-fit mb-1 shadow-sm">
+              <span class="material-symbols-outlined text-[13px]">campaign</span>
+              <span>Sorotan Utama</span>
+            </div>
+            <p id="gallery-caption" class="text-sm font-bold text-surface-card leading-snug drop-shadow line-clamp-1">
+              Kajian Akbar & Buka Bersama
+            </p>
+            <p id="gallery-sub" class="text-xs text-surface-container-high drop-shadow-sm line-clamp-1 mt-0.5">
+              Bersama Jamaah Masjid Al Ikhlash Pajangan
+            </p>
+          </div>
+
+          <!-- Indicator Dots -->
+          <div id="gallery-dots" class="absolute top-3 right-3 flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-2 py-1 rounded-full">
+            <button class="w-2.5 h-2.5 rounded-full bg-secondary-container transition-all" onclick="setSlide(0)"></button>
+            <button class="w-2 h-2 rounded-full bg-surface-card/60 transition-all" onclick="setSlide(1)"></button>
+            <button class="w-2 h-2 rounded-full bg-surface-card/60 transition-all" onclick="setSlide(2)"></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hadith / Mutiara Kata of the Day Card -->
+      <div class="bg-gold-light rounded-2xl p-4 shadow-sm relative overflow-hidden">
+        <div class="absolute -right-3 -bottom-3 text-secondary/10 pointer-events-none">
+          <span class="material-symbols-outlined text-[96px] leading-none">auto_awesome</span>
+        </div>
+        <div class="relative z-10 flex items-start gap-3">
+          <div class="w-10 h-10 rounded-xl bg-secondary-container text-on-secondary-container flex items-center justify-center flex-shrink-0 shadow-sm">
+            <span class="material-symbols-outlined text-[20px]">lightbulb</span>
+          </div>
+          <div class="flex flex-col gap-1 min-w-0">
+            <div class="flex items-center justify-between">
+              <span class="text-xs uppercase tracking-wider text-secondary font-bold">Mutiara Hikmah</span>
+              <span class="text-[11px] text-text-muted">HR. Muslim</span>
+            </div>
+            <blockquote class="text-xs text-text-primary italic leading-relaxed" id="hadithQuoteText">
+              “Siapa yang membangun masjid karena Allah walaupun hanya sebesar sarang burung atau lebih kecil, niscaya Allah bangunkan untuknya rumah di surga.”
+            </blockquote>
+            <div class="flex items-center justify-between pt-1">
+              <span class="text-[11px] text-text-muted">No. Hadits 533</span>
+              <button class="inline-flex items-center gap-1 text-xs text-primary font-bold hover:underline" onclick="salinMutiaraHadits()" type="button">
+                <span class="material-symbols-outlined text-[14px]">share</span>
+                <span>Bagikan</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ringkasan Transparansi Kas Singkat (Amanah Corner) -->
+      <div class="bg-surface-card rounded-2xl p-4 shadow-sm flex flex-col gap-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-primary text-[20px]">account_balance</span>
+            <h3 class="text-sm font-bold text-text-primary">Saldo Kas Masjid</h3>
+          </div>
+          <span class="text-[11px] text-income-green font-bold bg-surface-container-low px-2 py-0.5 rounded-full" id="ringkasKasPeriode">
+            Real-time
+          </span>
+        </div>
+
+        <div class="flex items-baseline justify-between bg-surface rounded-xl p-3.5">
+          <div>
+            <p class="text-xs text-text-muted">Total Dana Tersedia</p>
+            <p class="text-xl sm:text-2xl text-primary font-extrabold tracking-tight mt-0.5" id="ringkasKasSaldo">
+              Rp 24.620.000
+            </p>
+          </div>
+          <button class="px-3 py-1.5 rounded-xl bg-primary text-on-primary text-xs font-semibold shadow-sm active:scale-95 transition-transform flex items-center gap-1" onclick="navigateTab('kas')" type="button">
+            Buku Kas <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+          </button>
+        </div>
+
+        <!-- Breakdown Chips -->
+        <div class="grid grid-cols-2 gap-2">
+          <div class="bg-surface-container-low p-2.5 rounded-xl flex items-center gap-2">
+            <div class="w-7 h-7 rounded-lg bg-surface-card flex items-center justify-center text-income-green flex-shrink-0">
+              <span class="material-symbols-outlined text-[18px]">trending_up</span>
+            </div>
+            <div class="min-w-0">
+              <p class="text-[11px] text-text-muted truncate">Total Pemasukan</p>
+              <p class="text-xs text-income-green font-bold truncate" id="ringkasKasPemasukan">+Rp 42.850.000</p>
+            </div>
+          </div>
+          <div class="bg-error-container/40 p-2.5 rounded-xl flex items-center gap-2">
+            <div class="w-7 h-7 rounded-lg bg-surface-card flex items-center justify-center text-expense-red flex-shrink-0">
+              <span class="material-symbols-outlined text-[18px]">trending_down</span>
+            </div>
+            <div class="min-w-0">
+              <p class="text-[11px] text-text-muted truncate">Total Pengeluaran</p>
+              <p class="text-xs text-expense-red font-bold truncate" id="ringkasKasPengeluaran">-Rp 18.230.000</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+
+    <!-- --------------------------------------------------------------------
+         VIEW 2: KAS MASJID (TRANSPARANSI KEUANGAN LENGKAP)
+         -------------------------------------------------------------------- -->
+    <section id="view-kas" class="spa-view flex flex-col w-full space-y-4">
+      
+      <!-- Transparency Badge & Greeting Banner -->
+      <div class="bg-surface-container-low rounded-2xl p-4 shadow-sm flex items-start gap-3">
+        <div class="w-10 h-10 rounded-full bg-primary-container/10 flex items-center justify-center flex-shrink-0 text-primary-container">
+          <span class="material-symbols-outlined text-[22px]">verified_user</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <span class="bg-surface-container-highest text-primary text-[11px] font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-income-green animate-pulse"></span>
+              Prinsip Amanah
+            </span>
+            <span class="text-text-muted text-[11px]">Transparansi Terbuka</span>
+          </div>
+          <h2 class="text-sm font-bold text-text-primary mt-1">Laporan Keuangan Kas Terbuka</h2>
+          <p class="text-xs text-text-muted mt-0.5 leading-snug">
+            Informasi kas riil dapat diakses seluruh jamaah & publik sebagai bentuk akuntabilitas takmir.
+          </p>
+        </div>
+      </div>
+
+      <!-- Key Metrics: Saldo, Pemasukan, Pengeluaran -->
+      <div class="grid grid-cols-1 gap-2.5">
+        <!-- Saldo Utama Card -->
+        <div class="bg-surface-card rounded-2xl p-4 shadow-sm relative overflow-hidden">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-xl bg-surface-container flex items-center justify-center text-primary">
+                <span class="material-symbols-outlined text-[18px]">account_balance</span>
+              </div>
+              <span class="text-xs font-semibold text-text-muted">Saldo Kas Tersedia</span>
+            </div>
+            <span class="bg-surface-container-low text-income-green text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+              <span class="material-symbols-outlined text-[14px]">lock_clock</span>
+              Real-time
+            </span>
+          </div>
+          <div class="mt-2.5 flex items-baseline justify-between">
+            <div>
+              <span class="text-2xl font-extrabold text-primary tracking-tight" id="kasTotalSaldo">Rp 24.620.000</span>
+              <p class="text-xs text-text-muted mt-0.5">Disimpan di Rekening BSI & Brankas Kas Takmir</p>
+            </div>
+            <div class="p-2 rounded-xl bg-gold-light text-secondary flex items-center justify-center">
+              <span class="material-symbols-outlined text-[20px]">savings</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dual Metric Cards: Pemasukan & Pengeluaran -->
+        <div class="grid grid-cols-2 gap-2.5">
+          <div class="bg-surface-card rounded-2xl p-3.5 shadow-sm flex flex-col justify-between">
+            <span class="text-xs text-text-muted font-medium">Total Pemasukan</span>
+            <div class="mt-1.5">
+              <span class="text-base sm:text-lg font-bold text-income-green block truncate" id="kasTotalPemasukan">Rp 42.850.000</span>
+              <span class="text-[11px] text-text-muted">Bulan Berjalan</span>
+            </div>
+          </div>
+          <div class="bg-surface-card rounded-2xl p-3.5 shadow-sm flex flex-col justify-between">
+            <span class="text-xs text-text-muted font-medium">Total Pengeluaran</span>
+            <div class="mt-1.5">
+              <span class="text-base sm:text-lg font-bold text-expense-red block truncate" id="kasTotalPengeluaran">Rp 18.230.000</span>
+              <span class="text-[11px] text-text-muted">Bulan Berjalan</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Admin Action Bar: Visible only for Takmir (PRD Section 3 & 5) -->
+      <div id="adminKasActionBar" class="hidden p-3 bg-surface-container rounded-2xl flex flex-wrap items-center justify-between gap-2 shadow-sm">
+        <div class="flex items-center gap-1.5 text-xs font-bold text-primary">
+          <span class="material-symbols-outlined text-[18px]">admin_panel_settings</span>
+          <span>Fitur Takmir</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="bukaModalTambahKas()" class="px-3 py-1.5 rounded-xl bg-primary text-on-primary text-xs font-bold flex items-center gap-1 shadow-sm active:scale-95 transition-transform" type="button">
+            <span class="material-symbols-outlined text-[16px]">add</span>
+            <span>Tambah Transaksi</span>
+          </button>
+          <button onclick="exportKasExcel()" class="px-2.5 py-1.5 rounded-xl bg-surface-card text-income-green border border-income-green/30 text-xs font-bold flex items-center gap-1 shadow-sm active:scale-95 transition-transform" type="button" title="Unduh Excel">
+            <span class="material-symbols-outlined text-[16px]">table_view</span>
+            <span>Excel</span>
+          </button>
+          <button onclick="exportKasPDF()" class="px-2.5 py-1.5 rounded-xl bg-surface-card text-error border border-error/30 text-xs font-bold flex items-center gap-1 shadow-sm active:scale-95 transition-transform" type="button" title="Cetak PDF">
+            <span class="material-symbols-outlined text-[16px]">print</span>
+            <span>PDF</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Interactive Filter Section -->
+      <div class="bg-surface-card rounded-2xl p-3.5 shadow-sm space-y-2.5">
+        <!-- Search Bar -->
+        <div class="relative w-full">
+          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-[20px] pointer-events-none">search</span>
+          <input id="kasSearchInput" class="w-full h-11 pl-9 pr-3 rounded-xl bg-surface-container-low text-text-primary text-sm placeholder:text-text-muted focus:outline-none focus:bg-surface-container transition-colors" placeholder="Cari keterangan transaksi atau mutasi..." type="text"/>
+        </div>
+
+        <!-- Quick Dropdowns -->
+        <div class="grid grid-cols-2 gap-2">
+          <!-- Filter Jenis -->
+          <div class="relative">
+            <select id="kasTypeFilter" class="w-full h-10 px-2.5 bg-surface-container-low text-text-primary text-xs font-semibold rounded-xl appearance-none pr-8 focus:outline-none focus:bg-surface-container cursor-pointer">
+              <option value="all">Semua Jenis (Mutasi)</option>
+              <option value="pemasukan">Pemasukan (+)</option>
+              <option value="pengeluaran">Pengeluaran (-)</option>
+            </select>
+            <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-text-muted text-[18px] pointer-events-none">expand_more</span>
+          </div>
+
+          <!-- Filter Kategori -->
+          <div class="relative">
+            <select id="kasCategoryFilter" class="w-full h-10 px-2.5 bg-surface-container-low text-text-primary text-xs font-semibold rounded-xl appearance-none pr-8 focus:outline-none focus:bg-surface-container cursor-pointer">
+              <option value="all">Semua Kategori</option>
+              <option value="Infaq Jumat">Infaq Kotak Jumat</option>
+              <option value="Operasional">Operasional & PLN</option>
+              <option value="Pembangunan">Pembangunan</option>
+              <option value="Kebersihan">Kebersihan & Marbot</option>
+              <option value="Santunan">Pengajian & Dakwah</option>
+            </select>
+            <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-text-muted text-[18px] pointer-events-none">expand_more</span>
+          </div>
+        </div>
+
+        <!-- Filter Count -->
+        <div class="flex items-center justify-between pt-1">
+          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gold-light text-secondary text-xs font-semibold">
+            <span class="material-symbols-outlined text-[16px]">calendar_month</span>
+            <span id="kasPeriodLabel">Semua Riwayat</span>
+          </div>
+          <span class="text-text-muted text-xs" id="kasResultCount">Menampilkan mutasi</span>
+        </div>
+      </div>
+
+      <!-- Feed Header -->
+      <div class="flex items-center justify-between pt-1 px-1">
+        <div class="flex items-center gap-2">
+          <h3 class="text-sm font-bold text-text-primary">Rincian Buku Kas</h3>
+          <span class="w-2 h-2 rounded-full bg-income-green"></span>
+        </div>
+        <span class="text-text-muted text-xs">Urutan Terbaru</span>
+      </div>
+
+      <!-- Public Transactions Cards Feed -->
+      <div id="kasTransactionsList" class="space-y-2.5">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+
+      <!-- Empty State -->
+      <div id="kasEmptyState" class="hidden bg-surface-card rounded-2xl p-6 text-center shadow-sm">
+        <div class="w-14 h-14 mx-auto rounded-full bg-gold-light text-secondary flex items-center justify-center mb-3">
+          <span class="material-symbols-outlined text-[28px]">search_off</span>
+        </div>
+        <h4 class="text-sm font-bold text-text-primary">Tidak Ada Transaksi Ditemukan</h4>
+        <p class="text-xs text-text-muted mt-1 max-w-xs mx-auto">
+          Silakan periksa kata kunci pencarian atau sesuaikan opsi filter jenis dan kategori.
+        </p>
+        <button onclick="resetKasFilter()" class="mt-4 px-4 py-2 bg-surface-container-low text-primary rounded-xl text-xs font-bold" type="button">
+          Reset Filter
+        </button>
+      </div>
+
+      <!-- Congregational Note Card -->
+      <div class="bg-gradient-to-r from-surface-container-low to-surface-container-highest p-4 rounded-2xl shadow-sm flex items-center gap-3.5">
+        <div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-on-primary flex-shrink-0">
+          <span class="material-symbols-outlined text-[20px]">handshake</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <h5 class="text-xs font-bold text-primary truncate">Jazakumullah Khairan Katsiran</h5>
+          <p class="text-xs text-text-muted mt-0.5 leading-tight">
+            Setiap rupiah yang diinfaqkan dikelola penuh amanah untuk kemakmuran dakwah & jamaah.
+          </p>
+        </div>
+      </div>
+
+    </section>
+
+
+    <!-- --------------------------------------------------------------------
+         VIEW 3: DONASI & INFAQ ONLINE
+         -------------------------------------------------------------------- -->
+    <section id="view-donasi" class="spa-view flex flex-col w-full space-y-4">
+      
+      <!-- Welcoming Header & Hadith Callout -->
+      <div class="bg-surface-card p-4 sm:p-5 rounded-2xl shadow-sm relative overflow-hidden">
+        <div class="flex items-start gap-3">
+          <div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-primary flex-shrink-0">
+            <span class="material-symbols-outlined text-[22px]">volunteer_activism</span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <h2 class="text-base font-bold text-text-primary">Infaq & Sedekah Jariyah</h2>
+            <p class="text-xs text-text-muted mt-0.5 leading-relaxed">
+              Salurkan sedekah terbaik Anda untuk kemakmuran masjid dan syiar dakwah persyarikatan.
+            </p>
+          </div>
+        </div>
+        <div class="mt-3 p-3 bg-surface-container-low rounded-xl flex items-center gap-2.5">
+          <span class="material-symbols-outlined text-primary text-[18px] flex-shrink-0">format_quote</span>
+          <p class="text-xs text-primary italic leading-snug">
+            “Harta tidak akan berkurang dengan sedekah.” <span class="font-normal text-text-muted">(HR. Muslim)</span>
+          </p>
+        </div>
+      </div>
+
+      <!-- Program Selection Grid (2x2) -->
+      <div class="space-y-2">
+        <div class="flex items-center justify-between px-1">
+          <span class="text-sm font-bold text-text-primary">Pilih Program Kebaikan</span>
+          <span class="text-xs font-semibold text-primary">Tepat Sasaran</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2.5" id="donationProgramGrid">
+          <!-- Item 1 -->
+          <div class="program-card cursor-pointer p-3.5 rounded-2xl bg-surface-card shadow-sm transition-all duration-200 relative flex flex-col justify-between h-28 hover:shadow-md" onclick="selectDonationProgram('Infaq Operasional Masjid', this)">
+            <div class="flex justify-between items-start">
+              <div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-primary">
+                <span class="material-symbols-outlined text-[18px]">apartment</span>
+              </div>
+              <div class="check-pill hidden w-5 h-5 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center">
+                <span class="material-symbols-outlined text-[14px]">check</span>
+              </div>
+            </div>
+            <div>
+              <span class="text-xs font-bold text-text-primary block line-clamp-1">Operasional Masjid</span>
+              <span class="text-[11px] text-text-muted mt-0.5 block">Rutin bulanan</span>
+            </div>
+          </div>
+
+          <!-- Item 2 (Default Active) -->
+          <div class="program-card selected cursor-pointer p-3.5 rounded-2xl bg-surface-container-high shadow-md transition-all duration-200 relative flex flex-col justify-between h-28" onclick="selectDonationProgram('Pembangunan & Renovasi Kubah', this)">
+            <div class="flex justify-between items-start">
+              <div class="w-8 h-8 rounded-lg bg-primary text-on-primary flex items-center justify-center">
+                <span class="material-symbols-outlined text-[18px]">roofing</span>
+              </div>
+              <div class="check-pill w-5 h-5 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center shadow-sm">
+                <span class="material-symbols-outlined text-[14px]">check</span>
+              </div>
+            </div>
+            <div>
+              <span class="text-xs font-bold text-primary block line-clamp-1">Pembangunan Kubah</span>
+              <span class="text-[11px] text-text-muted mt-0.5 block">Target 65% tercapai</span>
+            </div>
+          </div>
+
+          <!-- Item 3 -->
+          <div class="program-card cursor-pointer p-3.5 rounded-2xl bg-surface-card shadow-sm transition-all duration-200 relative flex flex-col justify-between h-28 hover:shadow-md" onclick="selectDonationProgram('Santunan Yatim & Dhuafa', this)">
+            <div class="flex justify-between items-start">
+              <div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-primary">
+                <span class="material-symbols-outlined text-[18px]">diversity_1</span>
+              </div>
+              <div class="check-pill hidden w-5 h-5 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center">
+                <span class="material-symbols-outlined text-[14px]">check</span>
+              </div>
+            </div>
+            <div>
+              <span class="text-xs font-bold text-text-primary block line-clamp-1">Santunan Dhuafa</span>
+              <span class="text-[11px] text-text-muted mt-0.5 block">Tiap Jumat berkah</span>
+            </div>
+          </div>
+
+          <!-- Item 4 -->
+          <div class="program-card cursor-pointer p-3.5 rounded-2xl bg-surface-card shadow-sm transition-all duration-200 relative flex flex-col justify-between h-28 hover:shadow-md" onclick="selectDonationProgram('Wakaf Karpet & Sarana', this)">
+            <div class="flex justify-between items-start">
+              <div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-primary">
+                <span class="material-symbols-outlined text-[18px]">shelves</span>
+              </div>
+              <div class="check-pill hidden w-5 h-5 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center">
+                <span class="material-symbols-outlined text-[14px]">check</span>
+              </div>
+            </div>
+            <div>
+              <span class="text-xs font-bold text-text-primary block line-clamp-1">Wakaf Sarana</span>
+              <span class="text-[11px] text-text-muted mt-0.5 block">Per meter Rp 450rb</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bank Account & QRIS Card (Emerald Theme) -->
+      <div class="bg-primary text-on-primary rounded-2xl p-4 sm:p-5 shadow-lg relative overflow-hidden">
+        <div class="relative z-10 flex flex-col space-y-3.5">
+          <!-- Card Top: Bank Info -->
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="px-2 py-0.5 bg-surface-container-lowest/15 rounded-md flex items-center justify-center">
+                <span class="text-xs font-bold tracking-wider text-on-primary">BSI</span>
+              </div>
+              <span class="text-xs text-on-primary-container font-medium">Bank Syariah Indonesia</span>
+            </div>
+            <span class="material-symbols-outlined text-secondary-container text-[22px]">verified</span>
+          </div>
+
+          <!-- Account Number Block -->
+          <div class="bg-surface-container-lowest/10 p-3 rounded-xl backdrop-blur-sm flex items-center justify-between gap-2">
+            <div class="min-w-0">
+              <span class="text-[11px] text-on-primary-container block">Nomor Rekening Donasi</span>
+              <span class="text-lg sm:text-xl font-bold tracking-wider text-on-primary block font-mono" id="bankAccNumber">7142-9908-11</span>
+              <span class="text-xs text-on-primary/80 block truncate mt-0.5" id="bankAccHolder">a.n. Masjid Al Ikhlash PDM</span>
+            </div>
+            <button class="h-10 px-3 rounded-xl bg-secondary-container text-on-secondary-container flex items-center gap-1.5 flex-shrink-0 transition-transform active:scale-95 shadow-sm text-xs font-bold" onclick="salinNomorRekening()" type="button">
+              <span class="material-symbols-outlined text-[16px]">content_copy</span>
+              <span>Salin</span>
+            </button>
+          </div>
+
+          <!-- QRIS Section -->
+          <div class="bg-surface-card text-text-primary rounded-xl p-3.5 flex flex-col items-center text-center shadow-sm">
+            <div class="flex items-center justify-between w-full mb-2">
+              <span class="text-xs font-bold text-primary">QRIS Standar Nasional</span>
+              <span class="text-[11px] text-income-green px-2 py-0.5 bg-surface-container rounded-full font-semibold">Bebas Biaya Admin</span>
+            </div>
+            <!-- QR Placeholder / Image -->
+            <div class="relative w-40 h-40 bg-surface-container-low rounded-xl p-2 flex items-center justify-center shadow-inner">
+              <img id="qrisImage" alt="QRIS Masjid Al Ikhlash" class="w-full h-full object-contain rounded-lg" src="./assets/logo.png"/>
+            </div>
+            <p class="text-[11px] text-text-muted mt-2">
+              Menerima GoPay, OVO, Dana, ShopeePay, BCA, Livin Mandiri & Mobile Banking
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Donation Confirmation Form -->
+      <div class="bg-surface-card rounded-2xl p-4 sm:p-5 shadow-sm">
+        <div class="flex items-center gap-2.5 pb-2">
+          <div class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-primary">
+            <span class="material-symbols-outlined text-[18px]">receipt_long</span>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-text-primary">Form Konfirmasi Transfer</h3>
+            <p class="text-xs text-text-muted">Bantu kami mencatat amanah donasi Anda secara transparan</p>
+          </div>
+        </div>
+
+        <form id="donationForm" onsubmit="submitFormDonasi(event)" class="mt-3 space-y-3.5">
+          <!-- Program Terpilih -->
+          <div>
+            <label class="text-xs font-semibold text-text-primary block mb-1">Program Donasi</label>
+            <div class="h-11 px-3 bg-surface-container rounded-xl flex items-center gap-2 text-primary text-xs font-bold">
+              <span class="material-symbols-outlined text-[18px]">bookmark_added</span>
+              <span class="truncate" id="selectedProgramLabel">Pembangunan & Renovasi Kubah</span>
+              <input type="hidden" id="formProgramInput" value="Pembangunan & Renovasi Kubah"/>
+            </div>
+          </div>
+
+          <!-- Nama Donatur & Toggle Hamba Allah -->
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="text-xs font-semibold text-text-primary" for="formDonorName">Nama Donatur</label>
+              <button class="px-2 py-0.5 bg-surface-container rounded-full text-text-muted text-[11px] font-semibold flex items-center gap-1 transition-colors" onclick="toggleHambaAllah()" type="button">
+                <span class="material-symbols-outlined text-[13px]">visibility_off</span>
+                <span>Hamba Allah</span>
+              </button>
+            </div>
+            <input class="w-full h-11 px-3 bg-surface rounded-xl text-text-primary text-xs placeholder:text-text-muted outline-none transition-all focus:bg-surface-card focus:ring-2 focus:ring-primary" id="formDonorName" placeholder="Contoh: Ahmad Dahlan" required type="text"/>
+          </div>
+
+          <!-- Nomor WhatsApp -->
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="text-xs font-semibold text-text-primary" for="formDonorPhone">Nomor WhatsApp / HP</label>
+              <span class="text-[11px] text-text-muted">Opsional</span>
+            </div>
+            <div class="relative flex items-center">
+              <span class="absolute left-3 text-xs text-text-muted select-none font-semibold">+62</span>
+              <input class="w-full h-11 pl-10 pr-3 bg-surface rounded-xl text-text-primary text-xs placeholder:text-text-muted outline-none transition-all focus:bg-surface-card focus:ring-2 focus:ring-primary" id="formDonorPhone" placeholder="812-3456-7890" type="tel"/>
+            </div>
+          </div>
+
+          <!-- Nominal Donasi & Quick Chips -->
+          <div>
+            <label class="text-xs font-semibold text-text-primary block mb-1">Nominal Donasi (Rp)</label>
+            <div class="grid grid-cols-4 gap-1.5 mb-2">
+              <button class="h-8 rounded-lg bg-surface-container text-[11px] font-bold text-primary hover:bg-surface-container-high transition-colors active:scale-95" onclick="setNominalDonasi(50000)" type="button">50rb</button>
+              <button class="h-8 rounded-lg bg-surface-container text-[11px] font-bold text-primary hover:bg-surface-container-high transition-colors active:scale-95" onclick="setNominalDonasi(100000)" type="button">100rb</button>
+              <button class="h-8 rounded-lg bg-surface-container text-[11px] font-bold text-primary hover:bg-surface-container-high transition-colors active:scale-95" onclick="setNominalDonasi(250000)" type="button">250rb</button>
+              <button class="h-8 rounded-lg bg-surface-container text-[11px] font-bold text-primary hover:bg-surface-container-high transition-colors active:scale-95" onclick="setNominalDonasi(500000)" type="button">500rb</button>
+            </div>
+            <input class="w-full h-11 px-3 bg-surface rounded-xl text-text-primary text-xs font-bold placeholder:text-text-muted outline-none transition-all focus:bg-surface-card focus:ring-2 focus:ring-primary" id="formNominalInput" placeholder="Contoh: 100000" min="1000" required type="number"/>
+          </div>
+
+          <!-- Unggah Bukti Transfer -->
+          <div>
+            <label class="text-xs font-semibold text-text-primary block mb-1">Unggah Bukti Transfer (Foto/Struk)</label>
+            <input type="file" id="formBuktiFile" accept="image/*" class="w-full text-xs text-text-muted file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-surface-container file:text-primary hover:file:bg-surface-container-high cursor-pointer"/>
+          </div>
+
+          <!-- Doa & Pesan Kebaikan -->
+          <div>
+            <label class="text-xs font-semibold text-text-primary block mb-1" for="formDonorNote">Doa / Pesan Kebaikan (Opsional)</label>
+            <textarea class="w-full p-3 bg-surface rounded-xl text-text-primary text-xs placeholder:text-text-muted outline-none transition-all focus:bg-surface-card focus:ring-2 focus:ring-primary resize-none h-18" id="formDonorNote" placeholder="Tuliskan doa atau permohonan kebaikan..."></textarea>
+          </div>
+
+          <!-- Honeypot anti-spam (PRD Section 6) -->
+          <input type="text" id="hpCheck" class="hidden" tabindex="-1" autocomplete="off"/>
+
+          <!-- Submit Button -->
+          <button id="btnSubmitDonasi" class="w-full h-12 rounded-xl bg-primary text-on-primary text-xs font-bold shadow-md hover:bg-primary-container active:scale-98 transition-all flex items-center justify-center gap-1.5" type="submit">
+            <span class="material-symbols-outlined text-[18px]">send</span>
+            <span>Kirim Konfirmasi Donasi</span>
+          </button>
+        </form>
+      </div>
+
+    </section>
+
+
+    <!-- --------------------------------------------------------------------
+         VIEW 4: JADWAL KEGIATAN & KAJIAN
+         -------------------------------------------------------------------- -->
+    <section id="view-kegiatan" class="spa-view flex flex-col w-full space-y-4">
+      
+      <!-- Welcoming Header -->
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-base font-bold text-primary">Jadwal Kegiatan & Kajian</h2>
+          <p class="text-xs text-text-muted mt-0.5">Mari makmurkan masjid bersama keluarga dan jamaah</p>
+        </div>
+        <div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-primary shadow-sm flex-shrink-0">
+          <span class="material-symbols-outlined text-[20px]">notifications_active</span>
+        </div>
+      </div>
+
+      <!-- Search Input Bar -->
+      <div class="relative w-full">
+        <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-muted">
+          <span class="material-symbols-outlined text-[18px]">search</span>
+        </span>
+        <input id="kegiatanSearchInput" class="w-full h-11 pl-9 pr-3 rounded-xl bg-surface-card text-text-primary placeholder:text-text-muted text-xs focus:outline-none focus:ring-2 focus:ring-primary shadow-sm" placeholder="Cari kajian, nama ustadz, kegiatan..." type="text"/>
+      </div>
+
+      <!-- Horizontal Filter Chips -->
+      <div class="w-full overflow-x-auto no-scrollbar py-1">
+        <div class="flex items-center gap-1.5 whitespace-nowrap" id="kegiatanFilterChips">
+          <button class="kegiatan-chip active px-3.5 py-1.5 rounded-full text-xs font-semibold bg-primary text-on-primary shadow-sm transition-all" onclick="filterKegiatanCategory('all', this)" type="button">
+            Semua
+          </button>
+          <button class="kegiatan-chip px-3.5 py-1.5 rounded-full text-xs font-semibold bg-surface-card text-text-muted hover:bg-surface-container shadow-sm transition-all" onclick="filterKegiatanCategory('Kajian Rutin', this)" type="button">
+            Kajian Rutin
+          </button>
+          <button class="kegiatan-chip px-3.5 py-1.5 rounded-full text-xs font-semibold bg-surface-card text-text-muted hover:bg-surface-container shadow-sm transition-all" onclick="filterKegiatanCategory('Sholat Jumat', this)" type="button">
+            Sholat Jumat
+          </button>
+          <button class="kegiatan-chip px-3.5 py-1.5 rounded-full text-xs font-semibold bg-surface-card text-text-muted hover:bg-surface-container shadow-sm transition-all" onclick="filterKegiatanCategory('Sosial & Santunan', this)" type="button">
+            Sosial & Santunan
+          </button>
+          <button class="kegiatan-chip px-3.5 py-1.5 rounded-full text-xs font-semibold bg-surface-card text-text-muted hover:bg-surface-container shadow-sm transition-all" onclick="filterKegiatanCategory('Remaja Masjid & TPA', this)" type="button">
+            Remaja & TPA
+          </button>
+        </div>
+      </div>
+
+      <!-- Admin Add Event Button -->
+      <div id="adminKegiatanActionBar" class="hidden">
+        <button onclick="bukaModalTambahKegiatan()" class="w-full py-2.5 rounded-xl bg-primary text-on-primary text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm active:scale-98 transition-transform" type="button">
+          <span class="material-symbols-outlined text-[18px]">add_circle</span>
+          <span>Tambah Jadwal Kegiatan Baru</span>
+        </button>
+      </div>
+
+      <!-- Activities Feed -->
+      <div id="kegiatanListContainer" class="flex flex-col gap-3">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+
+    </section>
+
+
+    <!-- --------------------------------------------------------------------
+         VIEW 5: PROFIL MASJID & STRUKTUR PENGURUS
+         -------------------------------------------------------------------- -->
+    <section id="view-pengurus" class="spa-view flex flex-col w-full space-y-4">
+      
+      <!-- Profile Section Card -->
+      <div class="bg-surface-card rounded-2xl shadow-sm overflow-hidden flex flex-col">
+        <!-- Mosque Hero Snippet -->
+        <div class="relative w-full h-44 bg-surface-container overflow-hidden">
+          <img alt="Masjid Al Ikhlash" class="w-full h-full object-cover" src="./assets/hero-masjid.png"/>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent"></div>
+          
+          <div class="absolute top-3 left-3 bg-surface-card/90 backdrop-blur-md px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
+            <span class="material-symbols-outlined text-primary text-[15px]" style="font-variation-settings: 'FILL' 1;">verified</span>
+            <span class="text-[11px] font-bold text-text-primary">PRM Pajangan • Yogyakarta</span>
+          </div>
+
+          <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white text-xs">
+            <span class="font-semibold">Berdiri Sejak 1996</span>
+            <span class="bg-primary/90 px-2 py-0.5 rounded-full text-[11px] font-bold" id="profilPeriodeLabel">Periode 2024 - 2028</span>
+          </div>
+        </div>
+
+        <!-- Details -->
+        <div class="p-4 flex flex-col space-y-3">
+          <div>
+            <h1 class="text-lg font-bold text-text-primary leading-tight" id="profilMosqueTitle">Masjid Al Ikhlash</h1>
+            <div class="flex items-start gap-1 mt-1 text-text-muted">
+              <span class="material-symbols-outlined text-[16px] text-primary flex-shrink-0 mt-0.5">location_on</span>
+              <p class="text-xs leading-snug" id="profilMosqueAddress">Jl. Pajangan-Bantul No. 12, Kompleks Perguruan Muhammadiyah, Yogyakarta</p>
+            </div>
+          </div>
+
+          <!-- Vision & Mission Compact -->
+          <div class="bg-surface-container-low p-3 rounded-xl flex gap-2.5 items-start">
+            <div class="w-7 h-7 rounded-full bg-primary-fixed flex items-center justify-center flex-shrink-0 text-primary mt-0.5">
+              <span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">spa</span>
+            </div>
+            <div class="flex flex-col min-w-0">
+              <span class="text-[11px] font-bold text-primary uppercase tracking-wider">Visi & Misi Umat</span>
+              <p class="text-xs text-text-muted line-clamp-2 mt-0.5" id="profilMosqueVisi">
+                Mewujudkan pusat peribadatan dan peradaban yang berakhlak mulia, mencerahkan umat, serta mandiri secara sosial-keumatan.
+              </p>
+            </div>
+          </div>
+
+          <!-- Contact Action Row (3 Buttons) -->
+          <div class="grid grid-cols-3 gap-2 pt-1">
+            <a id="linkWA" href="https://wa.me/6281234567890" target="_blank" class="h-9 px-2 rounded-xl bg-surface-container flex items-center justify-center gap-1.5 text-primary text-xs font-semibold hover:bg-surface-container-high transition-colors active:scale-95">
+              <span class="material-symbols-outlined text-[16px] text-income-green">chat</span>
+              <span>WhatsApp</span>
+            </a>
+            <a id="linkMaps" href="https://maps.google.com" target="_blank" class="h-9 px-2 rounded-xl bg-surface-container flex items-center justify-center gap-1.5 text-primary text-xs font-semibold hover:bg-surface-container-high transition-colors active:scale-95">
+              <span class="material-symbols-outlined text-[16px] text-secondary">explore</span>
+              <span>Petunjuk</span>
+            </a>
+            <a id="linkEmail" href="mailto:info@masjid-al-ikhlash.id" class="h-9 px-2 rounded-xl bg-surface-container flex items-center justify-center gap-1.5 text-primary text-xs font-semibold hover:bg-surface-container-high transition-colors active:scale-95">
+              <span class="material-symbols-outlined text-[16px] text-text-muted">mail</span>
+              <span>Email</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section: Struktur Pengurus Takmir -->
+      <div class="flex flex-col space-y-2.5">
+        <div class="flex items-center justify-between px-1">
+          <div>
+            <h2 class="text-sm font-bold text-text-primary">Struktur Pengurus Takmir</h2>
+            <p class="text-[11px] text-text-muted">Ketuk pengurus untuk melihat rincian amanah</p>
+          </div>
+          <span class="text-xs bg-primary-fixed text-primary px-2.5 py-0.5 rounded-full font-bold">2024 - 2028</span>
+        </div>
+
+        <!-- Admin Add Pengurus Button -->
+        <div id="adminPengurusActionBar" class="hidden">
+          <button onclick="bukaModalTambahPengurus()" class="w-full py-2 rounded-xl bg-primary text-on-primary text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm active:scale-98 transition-transform" type="button">
+            <span class="material-symbols-outlined text-[16px]">person_add</span>
+            <span>Tambah Data Pengurus</span>
+          </button>
+        </div>
+
+        <!-- 2-Column Grid of Takmir Cards -->
+        <div class="grid grid-cols-2 gap-2.5" id="pengurusGridContainer">
+          <!-- Rendered dynamically by app.js -->
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ======================================================================
+       BOTTOM NAVIGATION BAR (PERSISTENT MOBILE-FIRST)
+       ====================================================================== -->
+  <nav class="fixed bottom-0 w-full z-40 pb-safe bg-surface-card/95 backdrop-blur-xl shadow-[0_-2px_16px_rgba(11,93,54,0.08)] border-t border-border-divider/50">
+    <div class="flex justify-around items-center h-16 px-1 max-w-lg mx-auto">
+      <button class="nav-tab active flex flex-col items-center justify-center min-w-[56px] min-h-[48px] py-1 transition-colors rounded-xl text-primary font-semibold" data-target="beranda" onclick="navigateTab('beranda')" type="button">
+        <span class="material-symbols-outlined text-[24px]">mosque</span>
+        <span class="text-[11px] mt-0.5">Beranda</span>
+      </button>
+
+      <button class="nav-tab flex flex-col items-center justify-center min-w-[56px] min-h-[48px] py-1 text-text-muted transition-colors rounded-xl" data-target="kas" onclick="navigateTab('kas')" type="button">
+        <span class="material-symbols-outlined text-[24px]">account_balance_wallet</span>
+        <span class="text-[11px] mt-0.5">Kas</span>
+      </button>
+
+      <button class="nav-tab flex flex-col items-center justify-center min-w-[56px] min-h-[48px] py-1 text-text-muted transition-colors rounded-xl" data-target="donasi" onclick="navigateTab('donasi')" type="button">
+        <span class="material-symbols-outlined text-[24px]">volunteer_activism</span>
+        <span class="text-[11px] mt-0.5">Donasi</span>
+      </button>
+
+      <button class="nav-tab flex flex-col items-center justify-center min-w-[56px] min-h-[48px] py-1 text-text-muted transition-colors rounded-xl" data-target="kegiatan" onclick="navigateTab('kegiatan')" type="button">
+        <span class="material-symbols-outlined text-[24px]">event_available</span>
+        <span class="text-[11px] mt-0.5">Kegiatan</span>
+      </button>
+
+      <button class="nav-tab flex flex-col items-center justify-center min-w-[56px] min-h-[48px] py-1 text-text-muted transition-colors rounded-xl" data-target="pengurus" onclick="navigateTab('pengurus')" type="button">
+        <span class="material-symbols-outlined text-[24px]">group</span>
+        <span class="text-[11px] mt-0.5">Pengurus</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ======================================================================
+       MODAL 1: TAKMIR ADMIN PORTAL (LOGIN & MANAGEMENT PANEL)
+       ====================================================================== -->
+  <div id="modalTakmir" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-4">
+    <div class="bg-surface-card rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto no-scrollbar shadow-2xl border border-border-divider flex flex-col">
+      
+      <!-- Modal Header -->
+      <div class="p-4 bg-primary text-on-primary flex items-center justify-between sticky top-0 z-10 shadow-sm">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-[22px] text-primary-fixed">admin_panel_settings</span>
+          <h3 class="text-sm font-bold tracking-tight">Portal Takmir Masjid</h3>
+        </div>
+        <button onclick="closeTakmirModal()" class="w-8 h-8 rounded-full bg-primary-container text-on-primary flex items-center justify-center hover:bg-primary-container/80 transition-colors" type="button">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+
+      <!-- State A: Form Login Admin -->
+      <div id="takmirLoginContainer" class="p-5 flex flex-col space-y-4">
+        <div class="text-center">
+          <div class="w-12 h-12 rounded-full bg-surface-container mx-auto flex items-center justify-center text-primary mb-2">
+            <span class="material-symbols-outlined text-[26px]">lock</span>
+          </div>
+          <h4 class="text-base font-bold text-text-primary">Masuk Akun Takmir</h4>
+          <p class="text-xs text-text-muted mt-0.5">Silakan login untuk memverifikasi donasi dan mengelola laporan kas</p>
+        </div>
+
+        <form id="takmirLoginForm" onsubmit="handleLoginSubmit(event)" class="space-y-3.5">
+          <div>
+            <label class="text-xs font-semibold text-text-primary block mb-1">Username Takmir</label>
+            <input id="loginUsername" type="text" required placeholder="admin" class="w-full h-11 px-3 rounded-xl bg-surface text-xs text-text-primary outline-none focus:ring-2 focus:ring-primary"/>
+          </div>
+
+          <div>
+            <label class="text-xs font-semibold text-text-primary block mb-1">Kata Sandi</label>
+            <input id="loginPassword" type="password" required placeholder="••••••••" class="w-full h-11 px-3 rounded-xl bg-surface text-xs text-text-primary outline-none focus:ring-2 focus:ring-primary"/>
+          </div>
+
+          <p id="loginErrorMsg" class="hidden text-xs text-error font-medium"></p>
+
+          <button id="btnLoginSubmit" type="submit" class="w-full h-11 rounded-xl bg-primary text-on-primary text-xs font-bold shadow-md hover:bg-primary-container active:scale-98 transition-all flex items-center justify-center gap-1.5">
+            <span class="material-symbols-outlined text-[18px]">login</span>
+            <span>Masuk ke Panel Takmir</span>
+          </button>
+        </form>
+
+        <p class="text-[11px] text-text-muted text-center pt-1">
+          *Dilindungi enkripsi HMAC-SHA256 & proteksi percobaan sandi.
+        </p>
+      </div>
+
+      <!-- State B: Panel Manajemen Takmir (When Logged In) -->
+      <div id="takmirDashboardContainer" class="hidden p-4 flex flex-col space-y-4">
+        
+        <!-- User Badge & Logout -->
+        <div class="p-3 bg-surface-container rounded-xl flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center text-xs font-bold">
+              <span class="material-symbols-outlined text-[18px]">person</span>
+            </div>
+            <div class="flex flex-col">
+              <span class="text-xs font-bold text-text-primary" id="loggedAdminName">Takmir Masjid</span>
+              <span class="text-[10px] text-income-green font-semibold">● Sesi Aktif (12 Jam)</span>
+            </div>
+          </div>
+          <button onclick="logoutAdmin()" class="px-2.5 py-1 rounded-lg bg-surface-card text-error text-xs font-bold flex items-center gap-1 shadow-sm active:scale-95" type="button">
+            <span class="material-symbols-outlined text-[14px]">logout</span>
+            <span>Keluar</span>
+          </button>
+        </div>
+
+        <!-- Dashboard Action Tabs -->
+        <div class="grid grid-cols-2 gap-2 text-xs font-bold">
+          <button onclick="showAdminTab('donasi')" class="admin-tab active py-2 px-3 rounded-xl bg-primary text-on-primary text-center transition-colors">
+            Verifikasi Donasi
+          </button>
+          <button onclick="showAdminTab('kas')" class="admin-tab py-2 px-3 rounded-xl bg-surface-container text-text-primary text-center transition-colors">
+            Buku Kas
+          </button>
+        </div>
+
+        <!-- Sub-panel 1: Verifikasi Donasi -->
+        <div id="adminPanelDonasi" class="space-y-3">
+          <div class="flex items-center justify-between">
+            <h5 class="text-xs font-bold text-text-primary">Daftar Konfirmasi Donasi Jamaah</h5>
+            <button onclick="muatAdminData()" class="text-xs text-primary font-bold flex items-center gap-0.5">
+              <span class="material-symbols-outlined text-[14px]">refresh</span> Refresh
+            </button>
+          </div>
+          <div id="adminDonasiList" class="space-y-2 max-h-72 overflow-y-auto no-scrollbar">
+            <!-- Rendered by app.js -->
+          </div>
+        </div>
+
+        <!-- Sub-panel 2: Kelola Kas -->
+        <div id="adminPanelKas" class="hidden space-y-3">
+          <div class="flex items-center justify-between">
+            <h5 class="text-xs font-bold text-text-primary">Kelola Transaksi Kas Masjid</h5>
+            <button onclick="bukaModalTambahKas()" class="px-2.5 py-1 rounded-lg bg-primary text-on-primary text-xs font-bold flex items-center gap-1">
+              <span class="material-symbols-outlined text-[14px]">add</span> Tambah
+            </button>
+          </div>
+          <div id="adminKasSummaryMini" class="p-2.5 bg-surface-container-low rounded-xl text-xs flex justify-between">
+            <span>Saldo Riil:</span>
+            <span class="font-bold text-primary" id="adminMiniSaldo">Rp 0</span>
+          </div>
+        </div>
+
+        <!-- Pengaturan Tambahan: Ganti Password & Dokumen -->
+        <div class="pt-2 border-t border-border-divider/60 space-y-2">
+          <button onclick="toggleGantiPassForm()" class="w-full py-2 rounded-xl bg-surface-container text-text-primary text-xs font-semibold flex items-center justify-between px-3">
+            <span>Ubah Kata Sandi Admin</span>
+            <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+          </button>
+
+          <form id="formGantiPass" onsubmit="handleGantiPassSubmit(event)" class="hidden p-3 bg-surface rounded-xl space-y-2">
+            <input id="inputPassBaru" type="password" placeholder="Kata sandi baru (min 8 karakter)" required class="w-full h-9 px-3 rounded-lg bg-surface-card text-xs outline-none focus:ring-1 focus:ring-primary"/>
+            <button type="submit" class="w-full h-8 rounded-lg bg-primary text-on-primary text-xs font-bold">Simpan Sandi Baru</button>
+          </form>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       MODAL 2: FORM TAMBAH / EDIT KAS (TAKMIR)
+       ====================================================================== -->
+  <div id="modalKasForm" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-4">
+    <div class="bg-surface-card rounded-2xl w-full max-w-sm p-4 shadow-2xl border border-border-divider flex flex-col space-y-3">
+      <div class="flex items-center justify-between pb-2 border-b border-border-divider/50">
+        <h4 class="text-sm font-bold text-text-primary">Tambah Transaksi Kas</h4>
+        <button onclick="tutupModalTambahKas()" class="text-text-muted hover:text-text-primary">
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+
+      <form id="formTambahKas" onsubmit="handleTambahKasSubmit(event)" class="space-y-3">
+        <div>
+          <label class="text-xs font-semibold text-text-primary block mb-1">Tanggal Transaksi</label>
+          <input id="inputKasTanggal" type="date" required class="w-full h-10 px-3 rounded-xl bg-surface text-xs outline-none focus:ring-1 focus:ring-primary"/>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-xs font-semibold text-text-primary block mb-1">Jenis</label>
+            <select id="inputKasJenis" class="w-full h-10 px-2 rounded-xl bg-surface text-xs outline-none focus:ring-1 focus:ring-primary">
+              <option value="Pemasukan">Pemasukan (+)</option>
+              <option value="Pengeluaran">Pengeluaran (-)</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-text-primary block mb-1">Kategori</label>
+            <input id="inputKasKategori" type="text" required placeholder="Contoh: Infaq Jumat" class="w-full h-10 px-2.5 rounded-xl bg-surface text-xs outline-none focus:ring-1 focus:ring-primary"/>
+          </div>
+        </div>
+
+        <div>
+          <label class="text-xs font-semibold text-text-primary block mb-1">Nominal (Rp)</label>
+          <input id="inputKasNominal" type="number" min="1000" required placeholder="Contoh: 500000" class="w-full h-10 px-3 rounded-xl bg-surface text-xs font-bold outline-none focus:ring-1 focus:ring-primary"/>
+        </div>
+
+        <div>
+          <label class="text-xs font-semibold text-text-primary block mb-1">Keterangan Rinci</label>
+          <textarea id="inputKasKet" required placeholder="Uraian mutasi kas..." class="w-full p-2.5 rounded-xl bg-surface text-xs outline-none focus:ring-1 focus:ring-primary h-16 resize-none"></textarea>
+        </div>
+
+        <div>
+          <label class="text-xs font-semibold text-text-primary block mb-1">Metode</label>
+          <select id="inputKasMetode" class="w-full h-10 px-2 rounded-xl bg-surface text-xs outline-none focus:ring-1 focus:ring-primary">
+            <option value="Kas Fisik">Kas Fisik</option>
+            <option value="Transfer Bank BSI">Transfer Bank BSI</option>
+            <option value="QRIS Digital">QRIS Digital</option>
+            <option value="Autodebet">Autodebet</option>
+          </select>
+        </div>
+
+        <button type="submit" class="w-full h-11 rounded-xl bg-primary text-on-primary text-xs font-bold shadow-md hover:bg-primary-container active:scale-98 transition-all">
+          Simpan Transaksi Kas
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       MODAL 3: DETAIL TAKMIR PENGURUS
+       ====================================================================== -->
+  <div id="modalPengurusDetail" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-4">
+    <div class="bg-surface-card rounded-2xl w-full max-w-sm p-5 shadow-2xl border border-border-divider flex flex-col items-center text-center relative">
+      <button onclick="tutupModalPengurusDetail()" class="absolute top-3 right-3 text-text-muted hover:text-text-primary">
+        <span class="material-symbols-outlined text-[20px]">close</span>
+      </button>
+
+      <div class="w-20 h-20 rounded-full p-1 bg-surface-container-high mb-3">
+        <img id="detailPengurusFoto" class="w-full h-full object-cover rounded-full bg-surface-dim" src="./assets/logo.png" alt="Foto Takmir"/>
+      </div>
+
+      <span id="detailPengurusJabatan" class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-gold-light text-secondary mb-1">Ketua Takmir</span>
+      <h4 id="detailPengurusNama" class="text-base font-bold text-text-primary">Nama Pengurus</h4>
+      <span id="detailPengurusMasa" class="text-xs text-text-muted mb-3">Masa Bakti 2024 - 2028</span>
+
+      <div class="w-full p-3 bg-surface rounded-xl text-left text-xs text-text-primary mb-3">
+        <p class="font-bold mb-1">Tugas & Amanah:</p>
+        <p id="detailPengurusBio" class="text-text-muted leading-relaxed">Profil takmir belum diisi.</p>
+      </div>
+
+      <a id="detailPengurusWA" href="#" target="_blank" class="w-full h-10 rounded-xl bg-surface-container text-primary text-xs font-bold flex items-center justify-center gap-1.5 hover:bg-surface-container-high transition-colors">
+        <span class="material-symbols-outlined text-[16px] text-income-green">chat</span>
+        <span>Hubungi WhatsApp</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       TOAST FEEDBACK NOTIFICATION
+       ====================================================================== -->
+  <div id="toast-feedback" class="fixed bottom-20 inset-x-4 max-w-sm mx-auto bg-text-primary text-white px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 opacity-0 pointer-events-none z-50 transition-all duration-300">
+    <span class="material-symbols-outlined text-[20px] text-primary-fixed" id="toast-icon">check_circle</span>
+    <span class="text-xs font-semibold flex-1 leading-snug" id="toast-message">Pesan notifikasi.</span>
+  </div>
+
+  <!-- Script Modules -->
+  <script src="./js/config.js"></script>
+  <script src="./js/app.js"></script>
+</body>
+</html>

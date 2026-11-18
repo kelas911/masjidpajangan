@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+
+<html lang="id"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_tab" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100vw;margin:0;padding:0;background-color:#F3F8F5;}body{overscroll-behavior:none;font-family:'Plus Jakarta Sans',sans-serif;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"tertiary-fixed":"#ffdada","error-container":"#ffdad6","on-surface-variant":"#404941","border-divider":"#DDE8E1","surface-bright":"#e8fff0","income-green":"#138A4E","on-tertiary-fixed":"#3d050e","tertiary-fixed-dim":"#ffb3b6","surface-container-low":"#e1f9ea","inverse-surface":"#20352a","on-secondary-fixed-variant":"#5d4200","primary-fixed":"#a8f3c0","inverse-on-surface":"#dff7e7","on-error-container":"#93000a","secondary-fixed":"#ffdea5","surface-container-highest":"#d0e8d9","surface-dim":"#c8e0d1","surface-tint":"#206b43","expense-red":"#D9383A","outline-variant":"#bfc9bf","text-primary":"#1A2E24","on-tertiary":"#ffffff","primary-container":"#0b5d36","outline":"#707a71","surface":"#F3F8F5","error":"#ba1a1a","secondary-container":"#fdbf35","on-tertiary-container":"#ffafb2","primary-fixed-dim":"#8cd7a5","surface-variant":"#d0e8d9","primary":"#004325","secondary-fixed-dim":"#fabc33","on-primary-fixed":"#00210f","on-secondary-container":"#6e4f00","tertiary-container":"#833a40","on-tertiary-fixed-variant":"#763036","surface-container-lowest":"#ffffff","on-error":"#ffffff","background":"#e8fff0","on-background":"#0b1f16","on-surface":"#0b1f16","inverse-primary":"#8cd7a5","on-secondary-fixed":"#261900","surface-card":"#FFFFFF","on-primary-container":"#8ad4a2","gold-light":"#FEF8E7","tertiary":"#66242a","on-primary":"#ffffff","text-muted":"#526B5E","surface-container-high":"#d6eede","on-primary-fixed-variant":"#00522e","secondary":"#7b5800","surface-container":"#dcf4e4","on-secondary":"#ffffff"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"space-xs":"0.25rem","gutter":"1rem","space-md":"1rem","space-xl":"2rem","space-sm":"0.5rem","margin":"1rem","space-lg":"1.5rem"},"fontFamily":{"headline-sm":["Plus Jakarta Sans"],"title-md":["Plus Jakarta Sans"],"headline-lg-mobile":["Plus Jakarta Sans"],"label-lg":["Plus Jakarta Sans"],"label-md":["Plus Jakarta Sans"],"body-lg":["Plus Jakarta Sans"],"headline-lg":["Plus Jakarta Sans"],"headline-md":["Plus Jakarta Sans"],"body-sm":["Plus Jakarta Sans"],"body-md":["Plus Jakarta Sans"],"display":["Plus Jakarta Sans"],"label-sm":["Plus Jakarta Sans"]},"fontSize":{"headline-sm":["18px",{"lineHeight":"24px","fontWeight":"600"}],"title-md":["16px",{"lineHeight":"22px","fontWeight":"600"}],"headline-lg-mobile":["24px",{"lineHeight":"32px","fontWeight":"700"}],"label-lg":["14px",{"lineHeight":"20px","fontWeight":"600"}],"label-md":["12px",{"lineHeight":"16px","fontWeight":"600"}],"body-lg":["16px",{"lineHeight":"24px","fontWeight":"400"}],"headline-lg":["28px",{"lineHeight":"36px","fontWeight":"700"}],"headline-md":["20px",{"lineHeight":"28px","fontWeight":"700"}],"body-sm":["12px",{"lineHeight":"16px","fontWeight":"400"}],"body-md":["14px",{"lineHeight":"20px","fontWeight":"400"}],"display":["36px",{"lineHeight":"44px","fontWeight":"800"}],"label-sm":["11px",{"lineHeight":"14px","fontWeight":"700"}]}}}};</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-surface text-on-surface font-body-md text-body-md flex flex-col min-h-screen"><header class="fixed top-0 w-full z-50 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(11,93,54,0.06)] pt-safe"><div class="h-16 px-margin flex items-center justify-between gap-space-sm"><div class="flex items-center gap-space-sm min-w-0"><img alt="Logo_Muhammadiyah.svg.webp" class="h-8 w-auto object-contain flex-shrink-0" src="https://lh3.googleusercontent.com/aida/ALJJyrDugbFVN4VV89ifj3BAYfNAO6KS5YGgU937WEmpa37zX-EjoIOtWeuGXdbYoAAfqu2Hdpm7KbfqpbwnnMd73gQChjqpM4fTIVhSRsurRC7HC7sQlHl_ys07R8gZbjcSzuyjWinqEAxUeW6vMd38v0G319AxOjf7I840vWk6jUChmRfwPOQID6egTLJ3-q25k5Hf3FMnnT-SQValhiAQdgFnadSMa1ZEJ7gEYKJLxsmOY42j2N2N50QCRBg"/><div class="flex flex-col min-w-0"><span class="font-headline-sm text-headline-sm text-primary truncate leading-tight">Masjid Al Ikhlash</span><span class="font-label-sm text-label-sm text-text-muted truncate">Kegiatan</span></div></div><div class="flex items-center gap-space-xs flex-shrink-0"><a class="min-h-[44px] min-w-[44px] px-space-sm py-1.5 rounded-full bg-gold-light text-secondary flex items-center justify-center gap-1 font-label-sm text-label-sm hover:bg-secondary-fixed/50 transition-colors" data-path="takmir-admin" href="#"><span class="material-symbols-outlined text-[18px]">admin_panel_settings</span><span class="hidden xs:inline font-semibold">Takmir</span></a><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="flex flex-col relative w-full px-margin pt-16 pb-24 bg-surface min-h-screen"><div class="flex flex-col w-full pb-8">
+<!-- Welcoming Header & Highlights Mini-Banner -->
+<div class="flex flex-col gap-space-xs mb-space-md">
+<div class="flex items-center justify-between">
+<div>
+<p class="font-headline-md text-headline-md text-primary font-bold">Jadwal Kegiatan &amp; Kajian</p>
+<p class="font-body-sm text-body-sm text-text-muted mt-0.5">Mari makmurkan masjid bersama keluarga dan jamaah</p>
+</div>
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-primary shadow-sm flex-shrink-0">
+<span class="material-symbols-outlined text-[22px]">notifications_active</span>
+</div>
+</div>
+</div>
+<!-- Search Input Bar -->
+<div class="relative w-full mb-space-md">
+<span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-text-muted">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</span>
+<input class="w-full h-12 pl-11 pr-10 rounded-xl bg-surface-card text-text-primary placeholder:text-outline text-body-md focus:outline-none focus:ring-2 focus:ring-primary shadow-sm" id="search-input" placeholder="Cari materi kajian, nama ustadz, kegiatan..." type="text"/>
+<button aria-label="Hapus pencarian" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-text-muted hidden" id="clear-search-btn" onclick="document.getElementById('search-input').value=''; this.classList.add('hidden'); filterActivities();">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+<!-- Horizontal Filter Chips (No Border, Tactile Pill Badges) -->
+<div class="w-full -mx-margin px-margin overflow-x-auto no-scrollbar mb-space-lg">
+<div class="flex items-center gap-space-sm whitespace-nowrap py-1" id="filter-container">
+<button class="filter-chip active flex items-center gap-1.5 px-4 py-2 rounded-full font-label-md text-label-md bg-primary text-on-primary shadow-sm transition-all cursor-pointer" data-category="all">
+<span class="material-symbols-outlined text-[16px]">done</span>
+<span>Semua</span>
+</button>
+<button class="filter-chip flex items-center gap-1.5 px-4 py-2 rounded-full font-label-md text-label-md bg-surface-card text-text-muted hover:bg-surface-container shadow-sm transition-all cursor-pointer" data-category="kajian">
+<span class="material-symbols-outlined text-[16px]">menu_book</span>
+<span>Kajian Rutin</span>
+</button>
+<button class="filter-chip flex items-center gap-1.5 px-4 py-2 rounded-full font-label-md text-label-md bg-surface-card text-text-muted hover:bg-surface-container shadow-sm transition-all cursor-pointer" data-category="jumat">
+<span class="material-symbols-outlined text-[16px]">mosque</span>
+<span>Sholat Jumat</span>
+</button>
+<button class="filter-chip flex items-center gap-1.5 px-4 py-2 rounded-full font-label-md text-label-md bg-surface-card text-text-muted hover:bg-surface-container shadow-sm transition-all cursor-pointer" data-category="sosial">
+<span class="material-symbols-outlined text-[16px]">diversity_1</span>
+<span>Sosial &amp; Santunan</span>
+</button>
+<button class="filter-chip flex items-center gap-1.5 px-4 py-2 rounded-full font-label-md text-label-md bg-surface-card text-text-muted hover:bg-surface-container shadow-sm transition-all cursor-pointer" data-category="remaja">
+<span class="material-symbols-outlined text-[16px]">school</span>
+<span>Remaja Masjid &amp; TPA</span>
+</button>
+</div>
+</div>
+<!-- Featured / Quick Context Card -->
+<div class="w-full bg-gradient-to-r from-surface-container-high to-surface-container rounded-2xl p-4 mb-space-lg flex items-center justify-between shadow-sm relative overflow-hidden">
+<div class="relative z-10 flex flex-col gap-1 pr-3">
+<div class="flex items-center gap-1.5 text-primary">
+<span class="material-symbols-outlined text-[18px]">verified</span>
+<span class="font-label-sm text-label-sm uppercase tracking-wide">Agenda Pekan Ini</span>
+</div>
+<p class="font-title-md text-title-md text-text-primary leading-snug">4 Agenda Utama Siap Dihadiri</p>
+<p class="font-body-sm text-body-sm text-text-muted">Disediakan sarapan pagi bersama pada kajian Ahad Subuh.</p>
+</div>
+<div class="relative z-10 w-12 h-12 rounded-xl bg-primary text-on-primary flex items-center justify-center flex-shrink-0 shadow-md">
+<span class="material-symbols-outlined text-[24px]">event_note</span>
+</div>
+<div class="absolute -right-4 -bottom-4 w-24 h-24 bg-primary/5 rounded-full pointer-events-none"></div>
+</div>
+<!-- Activities List (Calendar Rhythm) -->
+<div class="flex flex-col gap-space-md" id="activities-list">
+<!-- Card 1: Kajian Tematik Subuh -->
+<article class="activity-item w-full bg-surface-card rounded-2xl p-4 shadow-sm flex flex-col gap-3 transition-transform active:scale-[0.99]" data-category="kajian" data-search="kajian tematik menata hati menjemput ridho ilahi nashirudin ruang utama masjid subuh">
+<div class="flex items-start gap-3.5">
+<!-- Date Badge -->
+<div class="w-14 h-16 rounded-xl bg-primary flex flex-col items-center justify-center text-on-primary shadow-sm flex-shrink-0">
+<span class="font-headline-sm text-headline-sm font-bold leading-none tracking-tight">08</span>
+<span class="font-label-sm text-label-sm font-semibold tracking-wider mt-0.5">NOV</span>
+<span class="font-body-sm text-body-sm text-on-primary/75 text-[9px] leading-tight">2026</span>
+</div>
+<!-- Meta & Title -->
+<div class="flex flex-col min-w-0 flex-1">
+<div class="flex items-center gap-2 mb-1 flex-wrap">
+<span class="px-2 py-0.5 rounded-full bg-surface-container text-primary font-label-sm text-label-sm font-semibold">
+              Kajian Tematik
+            </span>
+<span class="px-2 py-0.5 rounded-full bg-surface-bright text-income-green font-label-sm text-label-sm font-semibold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-income-green inline-block"></span>
+              Umum (Ikhwan &amp; Akhwat)
+            </span>
+</div>
+<h3 class="font-title-md text-title-md text-text-primary leading-snug line-clamp-2">
+            Kajian Tematik: Menata Hati Menjemput Ridho Ilahi
+          </h3>
+</div>
+</div>
+<!-- Detail Rows -->
+<div class="bg-surface rounded-xl p-3 flex flex-col gap-2">
+<div class="flex items-center gap-2.5 text-text-primary">
+<div class="w-6 h-6 rounded-full bg-surface-container flex items-center justify-center text-primary flex-shrink-0">
+<span class="material-symbols-outlined text-[15px]">person</span>
+</div>
+<p class="font-body-md text-body-md truncate">
+<span class="text-text-muted font-normal">Pemateri:</span> <strong class="font-semibold text-primary">Ustadz Dr. H. Nashirudin, M.Ag</strong>
+</p>
+</div>
+<div class="flex items-center gap-2.5 text-text-primary">
+<div class="w-6 h-6 rounded-full bg-surface-container flex items-center justify-center text-primary flex-shrink-0">
+<span class="material-symbols-outlined text-[15px]">schedule</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-primary">
+            Ahad Ba'da Subuh — 06.30 WIB
+          </p>
+</div>
+<div class="flex items-center gap-2.5 text-text-primary">
+<div class="w-6 h-6 rounded-full bg-surface-container flex items-center justify-center text-primary flex-shrink-0">
+<span class="material-symbols-outlined text-[15px]">location_on</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-muted truncate">
+            Ruang Utama Masjid Al Ikhlash (Lantai 1 &amp; 2)
+          </p>
+</div>
+</div>
+<!-- Action Footer -->
+<div class="flex items-center justify-between pt-1 gap-2">
+<div class="flex items-center -space-x-1.5 overflow-hidden">
+<div class="inline-block h-6 w-6 rounded-full ring-2 ring-surface-card bg-surface-container text-primary flex items-center justify-center text-[10px] font-bold">120</div>
+<div class="inline-block h-6 w-6 rounded-full ring-2 ring-surface-card bg-surface-container-highest text-primary flex items-center justify-center text-[10px] font-bold">+</div>
+<span class="font-body-sm text-body-sm text-text-muted pl-3">Jamaah terdaftar</span>
+</div>
+<button class="calendar-btn min-h-[44px] px-3.5 py-2 rounded-xl bg-gold-light hover:bg-secondary-fixed/50 text-secondary font-label-sm text-label-sm font-semibold flex items-center gap-1.5 transition-colors shadow-sm" onclick="toggleReminder(this, 'Kajian Tematik: Menata Hati')">
+<span class="material-symbols-outlined text-[18px]">calendar_add_on</span>
+<span>Ingatkan Saya</span>
+</button>
+</div>
+</article>
+<!-- Card 2: Sholat Jumat -->
+<article class="activity-item w-full bg-surface-card rounded-2xl p-4 shadow-sm flex flex-col gap-3 transition-transform active:scale-[0.99]" data-category="jumat" data-search="khutbah sholat jumat berjamaah ahmad dahlan basri zaid al-hafizh">
+<div class="flex items-start gap-3.5">
+<!-- Date Badge -->
+<div class="w-14 h-16 rounded-xl bg-surface-container-highest text-primary flex flex-col items-center justify-center shadow-sm flex-shrink-0">
+<span class="font-headline-sm text-headline-sm font-bold leading-none tracking-tight">13</span>
+<span class="font-label-sm text-label-sm font-semibold tracking-wider mt-0.5">NOV</span>
+<span class="font-body-sm text-body-sm text-text-muted text-[9px] leading-tight">2026</span>
+</div>
+<!-- Meta & Title -->
+<div class="flex flex-col min-w-0 flex-1">
+<div class="flex items-center gap-2 mb-1 flex-wrap">
+<span class="px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-semibold">
+              Sholat Jumat Berjamaah
+            </span>
+</div>
+<h3 class="font-title-md text-title-md text-text-primary leading-snug">
+            Khutbah &amp; Sholat Jumat Berjamaah
+          </h3>
+</div>
+</div>
+<!-- Detail Rows -->
+<div class="bg-surface rounded-xl p-3 flex flex-col gap-2">
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+<div class="flex items-center gap-2.5">
+<div class="w-6 h-6 rounded-full bg-surface-container flex items-center justify-center text-primary flex-shrink-0">
+<span class="material-symbols-outlined text-[15px]">record_voice_over</span>
+</div>
+<div class="min-w-0">
+<p class="font-label-sm text-label-sm text-text-muted">Khatib:</p>
+<p class="font-body-md text-body-md font-semibold text-text-primary truncate">Drs. KH. Ahmad Dahlan Basri</p>
+</div>
+</div>
+<div class="flex items-center gap-2.5">
+<div class="w-6 h-6 rounded-full bg-surface-container flex items-center justify-center text-primary flex-shrink-0">
+<span class="material-symbols-outlined text-[15px]">volume_up</span>
+</div>
+<div class="min-w-0">
+<p class="font-label-sm text-label-sm text-text-muted">Imam:</p>
+<p class="font-body-md text-body-md font-semibold text-text-primary truncate">Ustadz Zaid Al-Hafizh</p>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-2.5 pt-1">
+<div class="w-6 h-6 rounded-full bg-surface-container flex items-center justify-center text-primary flex-shrink-0">
+<span class="material-symbols-outlined text-[15px]">schedule</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-primary">
+            11.30 WIB - Selesai • Azan 11.42 WIB
+          </p>
+</div>
+</div>
+<!-- Action Footer -->
+<div class="flex items-center justify-between pt-1 gap-2">
+<span class="font-body-sm text-body-sm text-text-muted flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-income-green">videocam</span>
+          Live streaming di YouTube Masjid
+        </span>
+<button class="calendar-btn min-h-[44px] px-3.5 py-2 rounded-xl bg-gold-light hover:bg-secondary-fixed/50 text-secondary font-label-sm text-label-sm font-semibold flex items-center gap-1.5 transition-colors shadow-sm" onclick="toggleReminder(this, 'Sholat Jumat Berjamaah')">
+<span class="material-symbols-outlined text-[18px]">calendar_add_on</span>
+<span>Ingatkan</span>
+</button>
+</div>
+</article>
+<!-- Card 3: Baksos & Donor Darah -->
+<article class="activity-item w-full bg-surface-card rounded-2xl p-4 shadow-sm flex flex-col gap-3 transition-transform active:scale-[0.99]" data-category="sosial" data-search="pemeriksaan kesehatan gratis donor darah lazismu rs pku muhammadiyah baksos sosial">
+<div class="flex items-start gap-3.5">
+<!-- Date Badge -->
+<div class="w-14 h-16 rounded-xl bg-surface-container-highest text-primary flex flex-col items-center justify-center shadow-sm flex-shrink-0">
+<span class="font-headline-sm text-headline-sm font-bold leading-none tracking-tight">15</span>
+<span class="font-label-sm text-label-sm font-semibold tracking-wider mt-0.5">NOV</span>
+<span class="font-body-sm text-body-sm text-text-muted text-[9px] leading-tight">2026</span>
+</div>
+<!-- Meta & Title -->
+<div class="flex flex-col min-w-0 flex-1">
+<div class="flex items-center gap-2 mb-1 flex-wrap">
+<span class="px-2 py-0.5 rounded-full bg-error-container text-tertiary font-label-sm text-label-sm font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">bloodtype</span>
+              Baksos &amp; Sosial
+            </span>
+<span class="px-2 py-0.5 rounded-full bg-surface-container text-primary font-label-sm text-label-sm font-semibold">
+              Kuota 150 Orang
+            </span>
+</div>
+<h3 class="font-title-md text-title-md text-text-primary leading-snug">
+            Pemeriksaan Kesehatan Gratis &amp; Donor Darah
+          </h3>
+</div>
+</div>
+<!-- Detail Rows -->
+<div class="bg-surface rounded-xl p-3 flex flex-col gap-2">
+<div class="flex items-center gap-2.5 text-text-primary">
+<div class="w-6 h-6 rounded-full bg-surface-container flex items-center justify-center text-primary flex-shrink-0">
+<span class="material-symbols-outlined text-[15px]">handshake</span>
+</div>
+<p class="font-body-md text-body-md">
+<span class="text-text-muted font-normal">Kolaborasi:</span> <strong class="font-semibold text-primary">Lazismu &amp; RS PKU Muhammadiyah</strong>
+</p>
+</div>
+<div class="flex items-center gap-2.5 text-text-primary">
+<div class="w-6 h-6 rounded-full bg-surface-container flex items-center justify-center text-primary flex-shrink-0">
+<span class="material-symbols-outlined text-[15px]">schedule</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-primary">
+            08.00 - 12.00 WIB • Serambi &amp; Poliklinik Masjid
+          </p>
+</div>
+<div class="flex items-center gap-2.5 text-text-primary">
+<div class="w-6 h-6 rounded-full bg-surface-container flex items-center justify-center text-primary flex-shrink-0">
+<span class="material-symbols-outlined text-[15px]">medical_services</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-muted">
+            Cek Gula Darah, Asam Urat, Tensi &amp; Konsultasi Dokter Umum
+          </p>
+</div>
+</div>
+<!-- Action Footer -->
+<div class="flex items-center justify-between pt-1 gap-2">
+<span class="px-2 py-1 rounded bg-surface-bright text-income-green font-label-sm text-label-sm font-semibold">
+          Gratis / Terbuka
+        </span>
+<button class="calendar-btn min-h-[44px] px-3.5 py-2 rounded-xl bg-gold-light hover:bg-secondary-fixed/50 text-secondary font-label-sm text-label-sm font-semibold flex items-center gap-1.5 transition-colors shadow-sm" onclick="toggleReminder(this, 'Pemeriksaan Kesehatan &amp; Donor Darah')">
+<span class="material-symbols-outlined text-[18px]">calendar_add_on</span>
+<span>Ingatkan Saya</span>
+</button>
+</div>
+</article>
+<!-- Card 4: Festival Anak Sholeh & TPA -->
+<article class="activity-item w-full bg-surface-card rounded-2xl p-4 shadow-sm flex flex-col gap-3 transition-transform active:scale-[0.99]" data-category="remaja" data-search="festival anak sholeh wisuda santri tpa lomba adzan tahfidz santri">
+<div class="flex items-start gap-3.5">
+<!-- Date Badge -->
+<div class="w-14 h-16 rounded-xl bg-surface-container-highest text-primary flex flex-col items-center justify-center shadow-sm flex-shrink-0">
+<span class="font-headline-sm text-headline-sm font-bold leading-none tracking-tight">22</span>
+<span class="font-label-sm text-label-sm font-semibold tracking-wider mt-0.5">NOV</span>
+<span class="font-body-sm text-body-sm text-text-muted text-[9px] leading-tight">2026</span>
+</div>
+<!-- Meta & Title -->
+<div class="flex flex-col min-w-0 flex-1">
+<div class="flex items-center gap-2 mb-1 flex-wrap">
+<span class="px-2 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed-variant font-label-sm text-label-sm font-semibold">
+              Remaja Masjid &amp; TPA
+            </span>
+</div>
+<h3 class="font-title-md text-title-md text-text-primary leading-snug">
+            Festival Anak Sholeh &amp; Wisuda Santri TPA
+          </h3>
+</div>
+</div>
+<!-- Detail Rows -->
+<div class="bg-surface rounded-xl p-3 flex flex-col gap-2">
+<div class="flex items-center gap-2.5 text-text-primary">
+<div class="w-6 h-6 rounded-full bg-surface-container flex items-center justify-center text-primary flex-shrink-0">
+<span class="material-symbols-outlined text-[15px]">workspace_premium</span>
+</div>
+<p class="font-body-md text-body-md text-text-primary">
+            Lomba Adzan, Tahfidz Juz 30, Mewarnai Kaligrafi
+          </p>
+</div>
+<div class="flex items-center gap-2.5 text-text-primary">
+<div class="w-6 h-6 rounded-full bg-surface-container flex items-center justify-center text-primary flex-shrink-0">
+<span class="material-symbols-outlined text-[15px]">schedule</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-primary">
+            09.00 - 15.00 WIB • Halaman &amp; Aula Masjid
+          </p>
+</div>
+</div>
+<!-- Action Footer -->
+<div class="flex items-center justify-between pt-1 gap-2">
+<span class="font-body-sm text-body-sm text-text-muted">
+          Didukung Ikatan Remaja Muhammadiyah (IRM)
+        </span>
+<button class="calendar-btn min-h-[44px] px-3.5 py-2 rounded-xl bg-gold-light hover:bg-secondary-fixed/50 text-secondary font-label-sm text-label-sm font-semibold flex items-center gap-1.5 transition-colors shadow-sm" onclick="toggleReminder(this, 'Festival Anak Sholeh TPA')">
+<span class="material-symbols-outlined text-[18px]">calendar_add_on</span>
+<span>Ingatkan Saya</span>
+</button>
+</div>
+</article>
+</div>
+<!-- Friendly Empty State Container -->
+<div class="hidden flex-col items-center justify-center text-center p-6 bg-surface-card rounded-2xl shadow-sm mt-2" id="empty-state">
+<!-- Gentle Calendar & Mosque Illustration -->
+<div class="w-24 h-24 rounded-full bg-surface-container-low flex items-center justify-center mb-4 relative">
+<svg class="w-12 h-12 text-primary" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewbox="0 0 24 24">
+<rect height="18" rx="3" ry="3" width="18" x="3" y="4"></rect>
+<line x1="16" x2="16" y1="2" y2="6"></line>
+<line x1="8" x2="8" y1="2" y2="6"></line>
+<line x1="3" x2="21" y1="10" y2="10"></line>
+<circle cx="12" cy="16" fill="currentColor" r="2"></circle>
+</svg>
+<span class="material-symbols-outlined absolute -bottom-1 -right-1 bg-secondary-container text-on-secondary-container p-1 rounded-full text-[16px] shadow-sm">
+        search_off
+      </span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-text-primary mb-1">
+      Belum ada kegiatan untuk kategori ini
+    </h4>
+<p class="font-body-sm text-body-sm text-text-muted max-w-xs mb-5">
+      Jadwal pengajian atau aktivitas baru akan segera diperbarui oleh Takmir Masjid Al Ikhlash.
+    </p>
+<button class="min-h-[48px] px-5 py-2.5 rounded-xl bg-primary text-on-primary font-label-md text-label-md flex items-center gap-2 hover:bg-primary-container transition-colors shadow-sm cursor-pointer" id="reset-filter-btn" onclick="resetFilter()">
+<span class="material-symbols-outlined text-[18px]">refresh</span>
+<span>Tampilkan Semua Jadwal</span>
+</button>
+</div>
+<!-- Community Note Card -->
+<div class="w-full mt-space-lg p-4 rounded-2xl bg-surface-card shadow-sm flex items-start gap-3">
+<div class="w-9 h-9 rounded-full bg-gold-light text-secondary flex items-center justify-center flex-shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-[20px]">lightbulb</span>
+</div>
+<div class="flex flex-col min-w-0">
+<p class="font-label-md text-label-md text-text-primary font-semibold">Punya Usulan Kajian atau Kegiatan?</p>
+<p class="font-body-sm text-body-sm text-text-muted mt-0.5">
+        Jamaah dapat mengajukan ide kajian, majelis ta'lim, atau baksos langsung kepada bidang Dakwah &amp; Tabligh Takmir Masjid Al Ikhlash.
+      </p>
+</div>
+</div>
+<!-- Delight Toast Notification Toast -->
+<div class="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-inverse-surface text-inverse-on-surface px-4 py-2.5 rounded-full font-label-md text-label-md flex items-center gap-2 shadow-lg transition-all duration-300 opacity-0 pointer-events-none translate-y-3" id="toast-notification">
+<span class="material-symbols-outlined text-[18px] text-primary-fixed">check_circle</span>
+<span id="toast-text">Berhasil ditambahkan ke agenda</span>
+</div>
+</div>
+<script>
+  // Filter and Search Logic
+  const filterChips = document.querySelectorAll('.filter-chip');
+  const activityItems = document.querySelectorAll('.activity-item');
+  const emptyState = document.getElementById('empty-state');
+  const searchInput = document.getElementById('search-input');
+  const clearSearchBtn = document.getElementById('clear-search-btn');
+
+  let activeCategory = 'all';
+
+  function filterActivities() {
+    const query = searchInput.value.toLowerCase().trim();
+    if (query.length > 0) {
+      clearSearchBtn.classList.remove('hidden');
+    } else {
+      clearSearchBtn.classList.add('hidden');
+    }
+
+    let visibleCount = 0;
+
+    activityItems.forEach(item => {
+      const itemCat = item.getAttribute('data-category');
+      const itemSearch = item.getAttribute('data-search') || '';
+
+      const matchCategory = (activeCategory === 'all' || itemCat === activeCategory);
+      const matchSearch = query === '' || itemSearch.includes(query) || item.innerText.toLowerCase().includes(query);
+
+      if (matchCategory && matchSearch) {
+        item.style.display = 'flex';
+        visibleCount++;
+      } else {
+        item.style.display = 'none';
+      }
+    });
+
+    if (visibleCount === 0) {
+      emptyState.classList.remove('hidden');
+      emptyState.classList.add('flex');
+    } else {
+      emptyState.classList.add('hidden');
+      emptyState.classList.remove('flex');
+    }
+  }
+
+  filterChips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      filterChips.forEach(c => {
+        c.classList.remove('active', 'bg-primary', 'text-on-primary');
+        c.classList.add('bg-surface-card', 'text-text-muted');
+        const icon = c.querySelector('.material-symbols-outlined');
+        if (icon && icon.textContent === 'done') {
+          // restore appropriate icon or hide
+          if (c.dataset.category === 'all') icon.textContent = 'event';
+        }
+      });
+
+      chip.classList.add('active', 'bg-primary', 'text-on-primary');
+      chip.classList.remove('bg-surface-card', 'text-text-muted');
+
+      activeCategory = chip.getAttribute('data-category');
+      filterActivities();
+    });
+  });
+
+  searchInput.addEventListener('input', () => {
+    filterActivities();
+  });
+
+  function resetFilter() {
+    activeCategory = 'all';
+    searchInput.value = '';
+    clearSearchBtn.classList.add('hidden');
+
+    filterChips.forEach(c => {
+      if (c.getAttribute('data-category') === 'all') {
+        c.classList.add('active', 'bg-primary', 'text-on-primary');
+        c.classList.remove('bg-surface-card', 'text-text-muted');
+      } else {
+        c.classList.remove('active', 'bg-primary', 'text-on-primary');
+        c.classList.add('bg-surface-card', 'text-text-muted');
+      }
+    });
+
+    filterActivities();
+  }
+
+  // Reminder Micro-Interaction Delight
+  function toggleReminder(button, title) {
+    const isAdded = button.getAttribute('data-reminded') === 'true';
+    const toast = document.getElementById('toast-notification');
+    const toastText = document.getElementById('toast-text');
+
+    if (!isAdded) {
+      button.setAttribute('data-reminded', 'true');
+      button.classList.remove('bg-gold-light', 'text-secondary');
+      button.classList.add('bg-surface-container', 'text-primary');
+      button.innerHTML = '<span class="material-symbols-outlined text-[18px] text-income-green">task_alt</span><span>Tersimpan</span>';
+      
+      toastText.innerText = 'Pengingat disimpan di kalender: ' + title;
+      showToast();
+    } else {
+      button.setAttribute('data-reminded', 'false');
+      button.classList.add('bg-gold-light', 'text-secondary');
+      button.classList.remove('bg-surface-container', 'text-primary');
+      button.innerHTML = '<span class="material-symbols-outlined text-[18px]">calendar_add_on</span><span>Ingatkan</span>';
+      
+      toastText.innerText = 'Pengingat dibatalkan';
+      showToast();
+    }
+  }
+
+  function showToast() {
+    const toast = document.getElementById('toast-notification');
+    toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-3');
+    toast.classList.add('opacity-100', 'translate-y-0');
+
+    setTimeout(() => {
+      toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-3');
+      toast.classList.remove('opacity-100', 'translate-y-0');
+    }, 2800);
+  }
+</script></main><nav class="fixed bottom-0 w-full z-50 pb-safe bg-surface-card/95 backdrop-blur-xl shadow-[0_-2px_16px_rgba(11,93,54,0.08)]" data-active-classes="text-primary font-semibold"><div class="flex justify-around items-center h-16 px-space-xs max-w-lg mx-auto"><a class="flex flex-col items-center justify-center min-w-[56px] min-h-[48px] py-1 text-text-muted transition-colors rounded-xl" data-path="beranda" href="#"><span class="material-symbols-outlined text-[24px]">mosque</span><span class="font-label-sm text-label-sm mt-0.5">Beranda</span></a><a class="flex flex-col items-center justify-center min-w-[56px] min-h-[48px] py-1 text-text-muted transition-colors rounded-xl" data-path="kas" href="#"><span class="material-symbols-outlined text-[24px]">account_balance_wallet</span><span class="font-label-sm text-label-sm mt-0.5">Kas</span></a><a class="flex flex-col items-center justify-center min-w-[56px] min-h-[48px] py-1 text-text-muted transition-colors rounded-xl" data-path="donasi" href="#"><span class="material-symbols-outlined text-[24px]">volunteer_activism</span><span class="font-label-sm text-label-sm mt-0.5">Donasi</span></a><a aria-current="page" class="flex flex-col items-center justify-center min-w-[56px] min-h-[48px] py-1 transition-colors rounded-xl text-primary font-semibold" data-path="kegiatan" href="#"><span class="material-symbols-outlined text-[24px]">event_available</span><span class="font-label-sm text-label-sm mt-0.5">Kegiatan</span></a><a class="flex flex-col items-center justify-center min-w-[56px] min-h-[48px] py-1 text-text-muted transition-colors rounded-xl" data-path="pengurus" href="#"><span class="material-symbols-outlined text-[24px]">group</span><span class="font-label-sm text-label-sm mt-0.5">Pengurus</span></a></div></nav></body></html>
